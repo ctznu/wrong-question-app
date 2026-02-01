@@ -1,0 +1,85 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+const AuthContext = createContext();
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(localStorage.getItem('token'));
+
+  // 检查用户是否已登录
+  useEffect(() => {
+    const checkUser = async () => {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        setToken(storedToken);
+        try {
+          const response = await fetch('http://localhost:5001/api/auth/me', {
+            headers: {
+              'x-auth-token': storedToken
+            }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData);
+          } else {
+            // Token无效，清除它
+            localStorage.removeItem('token');
+            setToken(null);
+            setUser(null);
+          }
+        } catch (error) {
+          console.error('Error checking user:', error);
+          localStorage.removeItem('token');
+          setToken(null);
+          setUser(null);
+        }
+      }
+      setLoading(false);
+    };
+
+    checkUser();
+  }, []);
+
+  const login = (userData, authToken) => {
+    console.log('Login - setting user:', userData);
+    setUser(userData);
+    setToken(authToken);
+    localStorage.setItem('token', authToken);
+  };
+
+  const updateUser = (userData) => {
+    console.log('Update user:', userData);
+    setUser(prevUser => ({ ...prevUser, ...userData }));
+  };
+
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('token');
+  };
+
+  const value = {
+    user,
+    token,
+    login,
+    logout,
+    updateUser,
+    loading
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
