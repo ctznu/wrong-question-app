@@ -1,70 +1,225 @@
-# Getting Started with Create React App
+# 错题本应用 (Wrong Question App)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+一个智能的错题本应用，使用 AI 技术帮助学生识别、分析和纠正错题。
 
-## Available Scripts
+## 功能特性
 
-In the project directory, you can run:
+- 📷 **智能 OCR 识别**：使用通义千问视觉模型（qwen-vl-max）识别题目图片
+- 🤖 **AI 题目分析**：自动分析题目类型、难度、正确答案
+- 📝 **错题原因分析**：识别错误类型（计算错误、概念不清、审题错误、粗心大意）
+- 🔄 **类似题目生成**：根据错题自动生成类似题目供练习
+- 📊 **统计分析**：统计错题类型、科目分布、错误趋势
+- 👤 **用户认证**：支持注册和登录功能
 
-### `npm start`
+## 技术栈
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 前端
+- **React** - UI 框架
+- **React Router** - 路由管理
+- **Axios** - HTTP 客户端
+- **Context API** - 状态管理
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 后端
+- **Node.js** - 运行时环境
+- **Express** - Web 框架
+- **MongoDB** - 数据库
+- **JWT** - 身份认证
 
-### `npm test`
+### OCR 服务
+- **Python/Flask** - OCR 服务
+- **通义千问 (qwen-vl-max)** - 视觉模型，用于 OCR 和题目分析
+- **DeepSeek** - 文本模型，用于题目生成
+- **智谱 AI** - 备用 AI 服务
+- **Tesseract OCR** - 本地 OCR 备用方案
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 项目结构
 
-### `npm run build`
+```
+wrong-question-app/
+├── client/                 # 前端 React 应用
+│   ├── public/
+│   └── src/
+│       ├── components/   # React 组件
+│       ├── contexts/     # Context API
+│       └── ...
+├── server/                # 后端 Node.js 服务器
+│   ├── models/       # 数据模型
+│   ├── routes/       # API 路由
+│   ├── middleware/   # 中间件
+│   └── ...
+├── ocr_server/           # OCR Python 服务
+│   ├── api_llm_client.py  # AI 客户端
+│   ├── llm_client.py      # LLM 客户端
+│   └── app.py           # Flask 应用
+└── requirements.md         # 项目依赖说明
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 快速开始
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 环境要求
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- Node.js 18+
+- Python 3.8+
+- MongoDB 4.4+
 
-### `npm run eject`
+### 安装依赖
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+#### 前端和后端
+```bash
+npm install
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+#### OCR 服务
+```bash
+cd ocr_server
+pip install -r requirements.txt
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 配置环境变量
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+创建 `.env` 文件（参考 `.env.example`）：
 
-## Learn More
+```bash
+# 通义千问 API 密钥
+TONGYI_API_KEY=your_tongyi_api_key_here
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+# DeepSeek API 密钥
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+# 智谱 AI API 密钥
+ZHIPU_API_KEY=your_zhipu_api_key_here
 
-### Code Splitting
+# Ollama 模型（可选）
+OLLAMA_MODEL=qwen2.5-vl:7b
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+# API 超时时间（秒）
+API_TIMEOUT=60
+```
 
-### Analyzing the Bundle Size
+### 启动服务
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+#### 启动前端和后端
+```bash
+# 终端 1：启动后端
+cd server
+npm start
 
-### Making a Progressive Web App
+# 终端 2：启动前端
+npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+#### 启动 OCR 服务
+```bash
+cd ocr_server
+python app.py
+```
 
-### Advanced Configuration
+服务将在以下端口运行：
+- 前端：http://localhost:3000
+- 后端：http://localhost:5001
+- OCR 服务：http://localhost:5000
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## 使用说明
 
-### Deployment
+### 1. 用户注册和登录
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+首次使用需要注册账号：
+1. 打开应用，点击"注册"
+2. 填写用户名、密码和邮箱
+3. 注册后登录
 
-### `npm run build` fails to minify
+### 2. 上传错题图片
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+1. 点击"上传错题"或"开始识别"
+2. 选择或拖拽错题图片
+3. 系统自动识别题目内容
+
+### 3. 查看识别结果
+
+系统会自动分析并显示：
+- 题目内容
+- 题目类型（选择题、填空题等）
+- 正确答案
+- 学生答案
+- 错误原因分析
+- 难度等级
+
+### 4. 生成类似题目
+
+1. 点击"生成类似题目"
+2. AI 自动生成 3 道类似题目
+3. 可用于练习巩固
+
+### 5. 查看统计
+
+在"统计"页面查看：
+- 错题类型分布
+- 科目分布
+- 错误趋势
+- 学习进度
+
+## API 端点
+
+### OCR 服务
+
+#### `POST /ocr`
+使用 Tesseract OCR 识别图片（备用方案）
+
+#### `POST /ollama_analyze`
+使用 Ollama 本地模型分析题目
+
+#### `POST /intelligent_analyze`
+使用通义千问视觉模型智能分析题目（推荐）
+
+#### `POST /generate_similar`
+生成类似题目
+
+### 后端 API
+
+#### 认证
+- `POST /api/auth/register` - 用户注册
+- `POST /api/auth/login` - 用户登录
+- `GET /api/auth/verify` - 验证 Token
+
+#### 题目管理
+- `POST /api/questions` - 创建题目
+- `GET /api/questions` - 获取题目列表
+- `GET /api/questions/:id` - 获取题目详情
+- `PUT /api/questions/:id` - 更新题目
+- `DELETE /api/questions/:id` - 删除题目
+
+#### AI 功能
+- `POST /api/ai/analyze` - AI 分析题目
+- `POST /api/ai/generate-similar` - 生成类似题目
+- `GET /api/ai/statistics` - 获取统计数据
+
+## 开发计划
+
+- [ ] 支持批量上传图片
+- [ ] 添加错题标签功能
+- [ ] 支持错题分享功能
+- [ ] 添加学习进度追踪
+- [ ] 支持导出 PDF
+- [ ] 添加错题本模板
+
+## 贡献指南
+
+欢迎贡献！请遵循以下步骤：
+
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 创建 Pull Request
+
+## 许可证
+
+MIT License
+
+## 联系方式
+
+如有问题或建议，请提交 Issue 或 Pull Request。
+
+---
+
+**注意**：本项目使用 AI 服务，需要配置相应的 API 密钥才能使用完整功能。
