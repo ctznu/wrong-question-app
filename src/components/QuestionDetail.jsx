@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Button, Box, TextField, Grid, Card, CardContent, Paper, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Alert } from '@mui/material';
+import { Container, Typography, Button, Box, TextField, Grid, Card, CardContent, Paper, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Alert, Snackbar } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Edit3, Save, X, RotateCcw, ArrowLeft, Lightbulb, Loader2 } from 'lucide-react';
+import { Edit3, Save, X, RotateCcw, ArrowLeft, Lightbulb, Loader2, CheckCircle } from 'lucide-react';
 
 const getGradeLabel = (grade) => {
   const gradeMap = {
@@ -30,6 +30,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
   const [similarQuestionDialog, setSimilarQuestionDialog] = useState(false);
   const [generatingSimilar, setGeneratingSimilar] = useState(false);
   const [similarQuestion, setSimilarQuestion] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
     // 查找问题，兼容MongoDB的_id和旧的id字段
@@ -380,15 +381,15 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   });
 
                   if (response.ok) {
-                    alert('保存成功！');
+                    setSnackbar({ open: true, message: '类似题目保存成功！', severity: 'success' });
                     setSimilarQuestionDialog(false);
                   } else {
                     const data = await response.json();
-                    alert(data.message || '保存失败');
+                    setSnackbar({ open: true, message: data.message || '保存失败', severity: 'error' });
                   }
                 } catch (error) {
                   console.error('保存失败:', error);
-                  alert('保存失败: ' + error.message);
+                  setSnackbar({ open: true, message: '保存失败: ' + error.message, severity: 'error' });
                 }
               }}
               startIcon={<Save size={16} />}
@@ -398,6 +399,36 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
           )}
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            bgcolor: snackbar.severity === 'success' ? '#4caf50' : '#f44336',
+            color: 'white',
+            px: 3,
+            py: 2,
+            borderRadius: 2,
+            boxShadow: 3
+          }}
+        >
+          {snackbar.severity === 'success' ? (
+            <CheckCircle size={20} />
+          ) : (
+            <X size={20} />
+          )}
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            {snackbar.message}
+          </Typography>
+        </Box>
+      </Snackbar>
     </Container>
   );
 }

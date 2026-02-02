@@ -197,7 +197,9 @@ class TongyiLLM(BaseAPILLM):
         }
 
         prompt = self._build_prompt(extracted_text, student_answer)
-
+        
+        print(f'[TongyiLLM] 传给LLM的prompt:\n{prompt[:500]}')
+        
         payload = {
             "model": "qwen-max",
             "input": {
@@ -241,9 +243,9 @@ class TongyiLLM(BaseAPILLM):
         """构建提示词"""
         student_answer_hint = f'\n\n学生答案：{student_answer}' if student_answer else '\n\n学生答案：未识别到'
         return f"""分析以下小学题目，输出JSON格式：
-
 题目内容：
 {ocr_text}
+
 {student_answer_hint}
 
 重要说明：
@@ -252,6 +254,8 @@ class TongyiLLM(BaseAPILLM):
 3. correct_answer：根据题目内容推断的正确答案
 4. 如果提供了学生答案，直接使用；如果没有，student_answer 留空
 5. 特别注意：如果学生答案是单个字母（如A、B、C、D），必须准确提取，不要将其转换为其他内容
+6. 如果题目中有括号，括号内容要准确提取，不能随意填充或推断
+7. 例如：如果题目是"（）三角形"，括号是空的，那么三角形类型应该保持为空，不能推断为"等腰三角形"
 
 错误原因分析要求：
 - 如果学生答案错误，必须深入分析错误原因，指出学生具体混淆了什么概念或犯了什么错误
@@ -387,6 +391,21 @@ class TongyiLLM(BaseAPILLM):
    - 不要使用小学生没学过的知识点
    - 数字要合理，不要太复杂
 
+4. **计算准确性**（非常重要）：
+   - 生成题目后，必须仔细计算正确答案
+   - 确保所有计算步骤都正确无误
+   - 特别是减法、加法等基础运算，必须准确
+   - 例如：581 - 558 = 23，不是203
+   - 生成前先在心里计算一遍，确保答案正确
+
+5. **几何题目识别要求（非常重要）**：
+4. **识别准确性要求（最重要）**：
+   - 严格按照图片中的文字内容识别，不要自由发挥
+   - 题目中的所有数字、文字、符号都要准确提取，不要随意修改
+   - 学生答案必须准确识别，不要根据常识推断
+   - 不要过度推断或补充题目中没有的信息
+   - 如果题目中有括号，括号内容要准确提取，不能随意填充或推断
+
 ## 输出格式（JSON）
 {{
   "question_text": "新题目内容",
@@ -400,6 +419,7 @@ class TongyiLLM(BaseAPILLM):
 重要要求：
 - explanation（解题思路）必须简洁明了，不超过50字
 - 不要长篇大论，用一句话概括解题要点即可
+- 严格按照图片内容识别，不要自由发挥
 
 请只输出JSON，不要其他内容。"""
 

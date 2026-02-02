@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import OcrOverlay from './OcrOverlay';
-import { Container, Typography, Button, Box, TextField, Select, MenuItem, FormControl, InputLabel, CircularProgress, Alert, Paper, InputAdornment, IconButton } from '@mui/material';
+import { Container, Typography, Button, Box, TextField, Select, MenuItem, FormControl, InputLabel, CircularProgress, Alert, Paper, InputAdornment, IconButton, Checkbox, FormGroup, FormControlLabel, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Upload as UploadIcon, Scan, Save, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -76,7 +76,7 @@ function Upload({ addQuestion }) {
   const [correctAnswer, setCorrectAnswer] = useState('');
   const [wrongAnswer, setWrongAnswer] = useState('');
   const [reason, setReason] = useState('');
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState([]);
   const [focusedField, setFocusedField] = useState('');
   const navigate = useNavigate();
 
@@ -142,6 +142,14 @@ function Upload({ addQuestion }) {
     }
   };
 
+  const handleTagChange = (tag, checked) => {
+    if (checked) {
+      setTags([...tags, tag]);
+    } else {
+      setTags(tags.filter(t => t !== tag));
+    }
+  };
+
   const handleQwenOCR = async () => {
     if (!file) return;
     setLoading(true);
@@ -149,12 +157,11 @@ function Upload({ addQuestion }) {
     setOcrError('');
     setRecognizedText('');
     setSubject('');
-    setSemester('');
     setQuestion('');
     setCorrectAnswer('');
     setWrongAnswer('');
     setReason('');
-    setTags('');
+    setTags([]);
     setParsedResult(null);
     try {
       const formData = new FormData();
@@ -181,7 +188,11 @@ function Upload({ addQuestion }) {
         console.log('识别结果:', data);
         console.log('视觉识别来源:', data.vision_source);
         console.log('推理分析来源:', data.reasoning_source);
-
+        console.log('OCR返回的grade:', data.grade);
+        console.log('OCR返回的semester:', data.semester);
+        console.log('OCR返回的grade类型:', typeof data.grade);
+        console.log('OCR返回的semester类型:', typeof data.semester);
+        
         // 自动填充表单
         // 学科映射
         const subjectMap = { 'math': 'math', 'chinese': 'chinese', 'english': 'english' };
@@ -197,6 +208,8 @@ function Upload({ addQuestion }) {
           console.log('推理分析的学期:', data.semester);
           // 合并年级和学期为 "3-上" 格式
           const combinedSemester = data.grade ? `${data.grade}-${data.semester}` : data.semester;
+          console.log('合并后的学期:', combinedSemester);
+          console.log('可用的学期选项:', semesters);
           setSemester(combinedSemester);
         } else if (user?.currentGrade) {
           // 如果推理分析没有识别，使用前端计算的
@@ -227,7 +240,7 @@ function Upload({ addQuestion }) {
         if (data.errorType && data.errorType !== 'none') {
           const errorTypeLabel = errorTypes[data.errorType] || '其他';
           console.log('设置错误类型标签:', errorTypeLabel);
-          setTags(errorTypeLabel);
+          setTags([errorTypeLabel]);
         } else {
           console.log('errorType为空或none，不设置标签');
         }
@@ -249,12 +262,11 @@ function Upload({ addQuestion }) {
     setOcrError('');
     setRecognizedText('');
     setSubject('');
-    setSemester('');
     setQuestion('');
     setCorrectAnswer('');
     setWrongAnswer('');
     setReason('');
-    setTags('');
+    setTags([]);
     setParsedResult(null);
     try {
       const formData = new FormData();
@@ -274,6 +286,10 @@ function Upload({ addQuestion }) {
 
         console.log('识别结果:', data);
         console.log('LLM 来源:', data.llm_source);
+        console.log('OCR返回的grade:', data.grade);
+        console.log('OCR返回的semester:', data.semester);
+        console.log('OCR返回的grade类型:', typeof data.grade);
+        console.log('OCR返回的semester类型:', typeof data.semester);
 
         // 自动填充表单
         // 学科映射
@@ -290,6 +306,8 @@ function Upload({ addQuestion }) {
           console.log('识别的学期:', data.semester);
           // 合并年级和学期为 "3-上" 格式
           const combinedSemester = data.grade ? `${data.grade}-${data.semester}` : data.semester;
+          console.log('合并后的学期:', combinedSemester);
+          console.log('可用的学期选项:', semesters);
           setSemester(combinedSemester);
         } else if (user?.currentGrade) {
           const calculatedSemester = getCurrentSemester();
@@ -313,7 +331,7 @@ function Upload({ addQuestion }) {
         if (data.errorType && data.errorType !== 'none') {
           const errorTypeLabel = errorTypes[data.errorType] || '其他';
           console.log('设置错误类型标签:', errorTypeLabel);
-          setTags(errorTypeLabel);
+          setTags([errorTypeLabel]);
         } else {
           console.log('errorType为空或none，不设置标签');
         }
@@ -336,7 +354,7 @@ function Upload({ addQuestion }) {
       correctAnswer,
       wrongAnswer,
       reason,
-      tags: tags.split(',').map(tag => tag.trim()),
+      tags: tags,
       imageUrl: preview,
       createdAt: new Date().toISOString().split('T')[0],
       similarQuestions: []
@@ -428,11 +446,6 @@ function Upload({ addQuestion }) {
 
           {file && (
             <Box className="form-section">
-              <Typography variant="h6" className="form-section-title">
-                <Scan size={20} style={{ verticalAlign: 'middle', marginRight: '8px' }} />
-                错题信息
-              </Typography>
-
               {ocrError && (
                 <Alert severity="error" sx={{ mb: 2, whiteSpace: 'pre-wrap' }}>
                   {ocrError}
@@ -526,8 +539,8 @@ function Upload({ addQuestion }) {
                 />
               </Box>
 
-              {/* 正确答案单独占一行 */}
-              <Box sx={{ mb: 2 }}>
+              {/* 正确答案和错误答案放在一行，各占50% */}
+              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                 <TextField
                   fullWidth
                   label="正确答案 *"
@@ -560,10 +573,6 @@ function Upload({ addQuestion }) {
                   onFocus={() => setFocusedField('correctAnswer')}
                   onBlur={() => setFocusedField('')}
                 />
-              </Box>
-
-              {/* 错误答案和错误原因一起占一行 */}
-              <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start' }}>
                 <TextField
                   fullWidth
                   label="错误答案"
@@ -596,9 +605,15 @@ function Upload({ addQuestion }) {
                   onFocus={() => setFocusedField('wrongAnswer')}
                   onBlur={() => setFocusedField('')}
                 />
+              </Box>
+
+              {/* 错误原因单独占一行，占满整行 */}
+              <Box sx={{ mb: 3 }}>
                 <TextField
                   fullWidth
                   label="错误原因"
+                  multiline
+                  rows={4}
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="请输入错误原因分析..."
@@ -630,23 +645,33 @@ function Upload({ addQuestion }) {
                 />
               </Box>
 
-              {/* 标签单独占一行，用下拉框 */}
-              <Box sx={{ mb: 2 }}>
-                <FormControl>
-                  <InputLabel sx={{ bgcolor: 'white', px: 0.5 }}>标签</InputLabel>
-                  <Select
-                    value={tags}
-                    label="标签"
-                    onChange={(e) => setTags(e.target.value)}
-                    sx={{ minWidth: 200 }}
-                  >
-                    <MenuItem value="计算错误">计算错误</MenuItem>
-                    <MenuItem value="概念不清">概念不清</MenuItem>
-                    <MenuItem value="审题错误">审题错误</MenuItem>
-                    <MenuItem value="粗心大意">粗心大意</MenuItem>
-                    <MenuItem value="其他">其他</MenuItem>
-                  </Select>
-                </FormControl>
+              {/* 标签单独占一行，支持多选 */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
+                  错误类型
+                </Typography>
+                <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
+                  <FormControlLabel
+                    control={<Checkbox checked={tags.includes('计算错误')} onChange={(e) => handleTagChange('计算错误', e.target.checked)} />}
+                    label="计算错误"
+                  />
+                  <FormControlLabel
+                    control={<Checkbox checked={tags.includes('概念不清')} onChange={(e) => handleTagChange('概念不清', e.target.checked)} />}
+                    label="概念不清"
+                  />
+                  <FormControlLabel
+                    control={<Checkbox checked={tags.includes('审题错误')} onChange={(e) => handleTagChange('审题错误', e.target.checked)} />}
+                    label="审题错误"
+                  />
+                  <FormControlLabel
+                    control={<Checkbox checked={tags.includes('粗心大意')} onChange={(e) => handleTagChange('粗心大意', e.target.checked)} />}
+                    label="粗心大意"
+                  />
+                  <FormControlLabel
+                    control={<Checkbox checked={tags.includes('其他')} onChange={(e) => handleTagChange('其他', e.target.checked)} />}
+                    label="其他"
+                  />
+                </Stack>
               </Box>
             </Box>
           )}
