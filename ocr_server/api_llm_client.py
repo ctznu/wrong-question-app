@@ -71,7 +71,7 @@ class TongyiLLM(BaseAPILLM):
                                 "image": f"data:image/jpeg;base64,{image_base64}"
                             },
                             {
-                                "text": "请提取这张图片中的所有文字，特别注意：1. 只识别图片中实际存在的文字，不要推断或猜测任何内容 2. 特别注意识别学生的手写答案（可能写在括号里、横线上、空白处）3. 不要填充或修改括号里的内容 4. 不要添加任何分析或解释。只输出识别到的文字。"
+                                "text": "请提取这张图片中的所有文字，特别注意：1. 只识别图片中实际存在的文字，不要推断或猜测任何内容 2. 特别注意识别学生的手写答案（可能写在括号里、横线上、空白处、选项前的标记等）3. 如果学生选择了某个选项（如A、B、C、D），必须准确提取这个字母 4. 不要填充或修改括号里的内容 5. 不要添加任何分析或解释。只输出识别到的文字。"
                             }
                         ]
                     }
@@ -101,28 +101,102 @@ class TongyiLLM(BaseAPILLM):
             response_text = str(content)
         
         print(f'[TongyiLLM] 提取的文字: {response_text}')
+        print(f'[TongyiLLM] 提取的文字长度: {len(response_text)}')
         print(f'[TongyiLLM] 文字提取完成')
         return response_text
 
-    def analyze_question(self, ocr_text: str,
-                       image_path: Optional[str] = None) -> Dict:
-        """分析题目 - 使用两步流程"""
-        print(f'[TongyiLLM] 开始分析...')
+    def extract_student_answer(self, image_path: str) -> str:
+        """使用视觉模型直接提取学生的答案"""
+        print(f'[TongyiLLM] 使用 qwen-vl-max 提取学生答案...')
         
-        if image_path:
-            # 第一步：用视觉模型提取文字
-            extracted_text = self.extract_text_from_image(image_path)
-            print(f'[TongyiLLM] 提取的文字: {extracted_text[:200] if extracted_text else "(空)"}')
-        else:
-            extracted_text = ocr_text
+        if not image_path:
+            raise Exception("需要提供图片路径")
         
-        # 第二步：用文本模型分析文字并输出 JSON
         headers = {
             'Authorization': f'Bearer {self.api_key}',
             'Content-Type': 'application/json'
         }
 
-        prompt = self._build_prompt(extracted_text)
+        # 读取并编码图片
+        import base64
+        with open(image_path, 'rb') as f:
+            image_data = f.read()
+        image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+        payload = {
+            "model": "qwen-vl-max",
+            "input": {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "image": f"data:image/jpeg;base64,{image_base64}"
+                            },
+                            {
+                                "text": "请仔细观察这张图片，找出学生的答案。特别注意：1. 查看括号里、横线上、空白处是否有学生填写的答案 2. 查看选项前是否有学生做的标记（如打勾、画圈、填涂等）3. 如果学生选择了某个选项（如A、B、C、D），只输出那个字母 4. 如果学生填写了文字答案，只输出那个文字 5. 如果没有找到学生答案，输出'无'。只输出答案内容，不要其他文字。"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+
+        response = requests.post(self.vision_base_url, json=payload,
+                              headers=headers, timeout=self.timeout)
+
+        if response.status_code != 200:
+            error_msg = f"通义千问 API error: {response.status_code}"
+            try:
+                error_detail = response.json()
+                error_msg += f" - {error_detail.get('message', 'Unknown error')}"
+            except:
+                pass
+            raise Exception(error_msg)
+
+        result = response.json()
+        content = result['output']['choices'][0]['message']['content']
+        if isinstance(content, list):
+            response_text = content[0]['text'] if content else ''
+        elif isinstance(content, str):
+            response_text = content
+        else:
+            response_text = str(content)
+        
+        # 清理答案
+        response_text = response_text.strip()
+        if response_text == '无' or response_text == '无答案':
+            response_text = ''
+        
+        print(f'[TongyiLLM] 提取的学生答案: {response_text}')
+        print(f'[TongyiLLM] 学生答案提取完成')
+        return response_text
+
+    def analyze_question(self, ocr_text: str,
+                       image_path: Optional[str] = None) -> Dict:
+        """分析题目 - 使用三步流程"""
+        print(f'[TongyiLLM] 开始分析...')
+        
+        # 第一步：用视觉模型提取文字
+        extracted_text = self.extract_text_from_image(image_path)
+        print(f'[TongyiLLM] 提取的文字: {extracted_text[:200] if extracted_text else "(空)"}')
+        
+        # 第二步：用视觉模型直接提取学生答案
+        student_answer = ''
+        if image_path:
+            try:
+                student_answer = self.extract_student_answer(image_path)
+                print(f'[TongyiLLM] 视觉模型提取的学生答案: {student_answer}')
+            except Exception as e:
+                print(f'[TongyiLLM] 提取学生答案失败: {e}')
+        
+        # 第三步：用文本模型分析文字并输出 JSON
+        headers = {
+            'Authorization': f'Bearer {self.api_key}',
+            'Content-Type': 'application/json'
+        }
+
+        prompt = self._build_prompt(extracted_text, student_answer)
 
         payload = {
             "model": "qwen-max",
@@ -152,21 +226,45 @@ class TongyiLLM(BaseAPILLM):
         response_text = result['output']['text']
 
         print(f'[TongyiLLM] 分析完成')
-        return self._parse_response(response_text)
+        parsed_result = self._parse_response(response_text)
+        
+        # 如果视觉模型提取到了学生答案，但推理模型没有，使用视觉模型的答案
+        if student_answer and not parsed_result.get('student_answer'):
+            parsed_result['student_answer'] = student_answer
+            print(f'[TongyiLLM] 使用视觉模型提取的学生答案: {student_answer}')
+        
+        print(f'[TongyiLLM] 解析后的student_answer: {parsed_result.get("student_answer", "无")}')
+        print(f'[TongyiLLM] 解析后的is_wrong: {parsed_result.get("is_wrong", "无")}')
+        return parsed_result
 
-    def _build_prompt(self, ocr_text: str) -> str:
+    def _build_prompt(self, ocr_text: str, student_answer: str = '') -> str:
         """构建提示词"""
+        student_answer_hint = f'\n\n学生答案：{student_answer}' if student_answer else '\n\n学生答案：未识别到'
         return f"""分析以下小学题目，输出JSON格式：
 
 题目内容：
 {ocr_text}
+{student_answer_hint}
 
 重要说明：
 1. question_text：输出完整的题目内容，包括括号，括号里保持为空
-2. student_answer：从图片中识别学生的手写答案或选择（括号里、横线上、空白处、选项前的标记等），不要自己推断或猜测
+2. student_answer：使用上面提供的"学生答案"，不要自己推断或猜测
 3. correct_answer：根据题目内容推断的正确答案
-4. 如果图片中有学生选择了某个选项（如 A、B、C、D），提取出来作为 student_answer
-5. 如果图片中没有学生答案，student_answer 留空
+4. 如果提供了学生答案，直接使用；如果没有，student_answer 留空
+5. 特别注意：如果学生答案是单个字母（如A、B、C、D），必须准确提取，不要将其转换为其他内容
+
+错误原因分析要求：
+- 如果学生答案错误，必须深入分析错误原因，指出学生具体混淆了什么概念或犯了什么错误
+- 例如：学生把面积公式和周长公式搞混了、学生混淆了乘法和加法、学生看错了题目要求等
+- 错误原因要具体、准确，不能泛泛而谈
+- 不要只说"学生可能没有正确计算"，要说出具体的问题所在
+
+错误类型标签说明：
+- calculation：计算错误（计算过程中出错，如加减乘除算错、小数点位置错误等）
+- concept：概念不清（混淆了不同的概念或公式，如面积和周长搞混、乘法和加法搞混等）
+- reading：审题错误（看错题目要求、漏看条件、理解偏差等）
+- careless：粗心大意（抄错数字、写错符号、单位错误等）
+- none：没有错误
 
 输出JSON格式：
 {{
@@ -177,11 +275,11 @@ class TongyiLLM(BaseAPILLM):
   "options": [{{"key": "A", "text": "选项A"}}, ...],
   "correct_answer": "正确答案（根据题目推断）",
   "difficulty": "easy/medium/hard",
-  "student_answer": "学生答案（从图片中识别，不要推断）",
+  "student_answer": "学生答案（从图片中识别，不要推断，如果是A/B/C/D等字母，必须准确提取）",
   "student_answer_bbox": {{"x": 0, "y": 0, "width": 0, "height": 0}},
   "is_wrong": true/false,
   "error_type": "calculation/concept/reading/careless/none",
-  "error_reason": "错误原因",
+  "error_reason": "错误原因（必须具体、准确，指出学生具体混淆了什么概念或犯了什么错误）",
   "explanation": "题目解析",
   "grade": "1/2/3/4/5/6",
   "semester": "上/下"

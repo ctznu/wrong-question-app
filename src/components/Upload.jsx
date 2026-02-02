@@ -55,6 +55,7 @@ const questionTypes = {
 const errorTypes = {
   'calculation': '计算错误',
   'concept': '概念不清',
+  'reading': '审题错误',
   'careless': '粗心大意',
   'unknown': '未知'
 };
@@ -164,6 +165,12 @@ function Upload({ addQuestion }) {
         body: formData,
       });
       const data = await resp.json();
+      console.log('=== 千问识别完整响应数据 ===');
+      console.log('完整数据:', JSON.stringify(data, null, 2));
+      console.log('studentAnswer字段值:', data.studentAnswer);
+      console.log('studentAnswer类型:', typeof data.studentAnswer);
+      console.log('=== 结束 ===');
+      
       if (!resp.ok) {
         setOcrError(data.error || '服务返回错误');
         setRecognizedText('识别失败，请查看错误信息');
@@ -205,10 +212,25 @@ function Upload({ addQuestion }) {
         if (data.correctAnswer) setCorrectAnswer(data.correctAnswer);
 
         // 学生答案
-        if (data.studentAnswer) setWrongAnswer(data.studentAnswer);
+        console.log('准备设置错误答案，原始值:', data.studentAnswer);
+        if (data.studentAnswer) {
+          console.log('设置错误答案为:', data.studentAnswer);
+          setWrongAnswer(data.studentAnswer);
+        } else {
+          console.log('studentAnswer为空，不设置错误答案');
+        }
 
         // 错误原因
         if (data.errorReason) setReason(data.errorReason);
+
+        // 错误类型标签
+        if (data.errorType && data.errorType !== 'none') {
+          const errorTypeLabel = errorTypes[data.errorType] || '其他';
+          console.log('设置错误类型标签:', errorTypeLabel);
+          setTags(errorTypeLabel);
+        } else {
+          console.log('errorType为空或none，不设置标签');
+        }
       }
     } catch (err) {
       console.error('OCR 请求失败:', err);
@@ -286,6 +308,15 @@ function Upload({ addQuestion }) {
 
         // 错误原因
         if (data.errorReason) setReason(data.errorReason);
+
+        // 错误类型标签
+        if (data.errorType && data.errorType !== 'none') {
+          const errorTypeLabel = errorTypes[data.errorType] || '其他';
+          console.log('设置错误类型标签:', errorTypeLabel);
+          setTags(errorTypeLabel);
+        } else {
+          console.log('errorType为空或none，不设置标签');
+        }
       }
     } catch (err) {
       console.error('DeepSeek OCR 请求失败:', err);
