@@ -650,7 +650,7 @@ def ocr_only():
 def intelligent_analyze():
     """
     智能识别端点
-    使用通义千问进行视觉识别和题目分析
+    使用智谱AI进行视觉识别和题目分析
     """
     if 'file' not in request.files:
         return jsonify({'error': 'no file provided'}), 400
@@ -666,7 +666,7 @@ def intelligent_analyze():
         with open(saved_path, 'wb') as out_f:
             out_f.write(f.stream.read())
 
-        # 直接使用通义千问视觉模型进行智能分析（不需要 Tesseract OCR）
+        # 直接使用智谱AI视觉模型进行智能分析（不需要 Tesseract OCR）
         result = {
             'ocr_result': None,  # 不再使用 Tesseract
             'llm_analysis': None,
@@ -674,16 +674,14 @@ def intelligent_analyze():
             'error': None
         }
 
-        print('[intelligent_analyze] 尝试使用通义千问...')
+        print('[intelligent_analyze] 尝试使用智谱AI...')
         api_llm = get_available_api_llm()
         print(f'[intelligent_analyze] 可用的 LLM: {type(api_llm).__name__ if api_llm else "None"}')
         if api_llm:
             try:
                 print(f'[intelligent_analyze] 开始调用 {type(api_llm).__name__}...')
-                llm_result = api_llm.analyze_question(
-                    '',  # 不再传递 OCR 文本
-                    saved_path  # 直接传递图片路径
-                )
+                # 折中方案：调用 analyze_question（2次调用：识别+分析）
+                llm_result = api_llm.analyze_question('', saved_path)
                 result['llm_analysis'] = llm_result
                 result['llm_source'] = type(api_llm).__name__
                 print(f'[intelligent_analyze] {type(api_llm).__name__} 分析成功')
@@ -698,7 +696,7 @@ def intelligent_analyze():
             result['llm_analysis'] = {
                 'is_question': None,
                 'error': 'No cloud LLM available',
-                'message': '请配置通义千问API密钥以启用智能分析'
+                'message': '请配置智谱AI API密钥以启用智能分析'
             }
             result['llm_source'] = 'none'
 
@@ -855,7 +853,7 @@ def generate_similar_question():
         if not api_llm:
             return jsonify({
                 'error': 'No cloud LLM available',
-                'message': '请配置云LLM API密钥（DeepSeek或通义千问）以启用智能分析'
+                'message': '请配置云LLM API密钥（智谱AI）以启用智能分析'
             }), 400
 
         similar_question = api_llm.generate_similar_question(question_data)
