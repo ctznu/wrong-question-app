@@ -42,7 +42,8 @@ class ZhipuLLM(BaseAPILLM):
     def __init__(self):
         self.api_key = os.getenv('ZHIPU_API_KEY', '')
         self.base_url = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
-        self.vision_model = os.getenv('ZHIPU_VISION_MODEL', 'glm-4.6v')  # 从配置文件读取模型名称
+        self.vision_model = os.getenv('ZHIPU_VISION_MODEL', 'glm-4.6v')  # 第1步：识别图片文字的模型
+        self.analysis_model = os.getenv('ZHIPU_ANALYSIS_MODEL', 'glm-4.7-flash')  # 第2步：分析题目和答案的模型
         self.timeout = int(os.getenv('API_TIMEOUT', '60'))
         self.max_retries = 3  # 最大重试次数
         self.retry_delay = 2  # 初始重试延迟（秒）
@@ -62,7 +63,7 @@ class ZhipuLLM(BaseAPILLM):
         ocr_result = self._recognize_text(image_path)
 
         # 第2次调用：分析题目和答案
-        print(f'[ZhipuLLM] 第2步：分析题目和答案...')
+        print(f'[ZhipuLLM] 第2步：分析题目和答案，使用模型 {self.analysis_model}...')
         analysis_result = self._analyze_text(ocr_result)
 
         # 合并结果
@@ -145,7 +146,7 @@ class ZhipuLLM(BaseAPILLM):
         }
 
         payload = {
-            "model": f"{self.vision_model}",
+            "model": f"{self.analysis_model}",
             "messages": [
                 {
                     "role": "user",
@@ -215,6 +216,7 @@ class ZhipuLLM(BaseAPILLM):
   "error_type": "calculation/concept/reading/careless/none",
   "error_reason": "错误原因",
   "explanation": "题目解析",
+  "reasoning_steps": "推理步骤（分步骤展示如何从题目推导出正确答案）",
   "subject": "math/chinese/english/unknown",
   "difficulty": "easy/medium/hard"
 }}
@@ -264,7 +266,7 @@ class ZhipuLLM(BaseAPILLM):
         prompt = self._build_similar_question_prompt(question_data)
 
         payload = {
-            "model": f"{self.vision_model}",
+            "model": f"{self.analysis_model}",
             "messages": [
                 {
                     "role": "user",

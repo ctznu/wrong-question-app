@@ -676,19 +676,21 @@ def intelligent_analyze():
 
         print('[intelligent_analyze] 尝试使用智谱AI...')
         api_llm = get_available_api_llm()
-        model_name = getattr(api_llm, 'vision_model', 'unknown') if api_llm else 'None'
-        print(f'[intelligent_analyze] 可用的 LLM: {model_name}')
         if api_llm:
             try:
-                print(f'[intelligent_analyze] 开始调用 {model_name}...')
+                vision_model = getattr(api_llm, 'vision_model', 'unknown')
+                analysis_model = getattr(api_llm, 'analysis_model', 'unknown')
+                print(f'[intelligent_analyze] 开始调用 {vision_model}...')
                 # 折中方案：调用 analyze_question（2次调用：识别+分析）
                 llm_result = api_llm.analyze_question('', saved_path)
                 result['llm_analysis'] = llm_result
-                result['llm_source'] = model_name
-                print(f'[intelligent_analyze] {model_name} 分析成功')
+                result['llm_source'] = f'{vision_model} + {analysis_model}'
+                print(f'[intelligent_analyze] {vision_model} + {analysis_model} 分析成功')
             except Exception as e:
                 tb = traceback.format_exc()
-                print(f'[intelligent_analyze] {model_name} 失败: {e}')
+                vision_model = getattr(api_llm, 'vision_model', 'unknown')
+                analysis_model = getattr(api_llm, 'analysis_model', 'unknown')
+                print(f'[intelligent_analyze] {vision_model} + {analysis_model} 失败: {e}')
                 print(f'[intelligent_analyze] 错误详情:\n{tb}')
                 result['error'] = f'API LLM failed: {str(e)}'
 
@@ -718,6 +720,7 @@ def intelligent_analyze():
                 'errorType': llm_analysis.get('error_type', 'none'),
                 'errorReason': llm_analysis.get('error_reason', ''),
                 'explanation': llm_analysis.get('explanation', ''),
+                'reasoningSteps': llm_analysis.get('reasoning_steps', ''),
                 'grade': llm_analysis.get('grade', ''),
                 'semester': llm_analysis.get('semester', ''),
                 'confidence': llm_analysis.get('confidence', 0.95),
@@ -957,6 +960,7 @@ def merge_ocr_and_llm(ocr_result: Dict, llm_analysis: Dict) -> Dict:
         'isWrong': llm_analysis.get('is_wrong', False),
         'errorType': llm_analysis.get('error_type', 'none'),
         'errorReason': llm_analysis.get('error_reason', ''),
+        'reasoningSteps': llm_analysis.get('reasoning_steps', ''),
 
         # 年级和学期（LLM识别的）
         'grade': llm_analysis.get('grade', ''),

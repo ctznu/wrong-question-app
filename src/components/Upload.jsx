@@ -462,6 +462,15 @@ function Upload({ addQuestion }) {
                 </Alert>
               )}
 
+              {parsedResult && parsedResult.reasoning_steps && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  <strong>推理步骤：</strong><br/>
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-line', mt: 1 }}>
+                    {parsedResult.reasoning_steps}
+                  </Typography>
+                </Alert>
+              )}
+
               {!localStorage.getItem('currentGrade') && (
                 <Alert severity="info" sx={{ mb: 2 }}>
                   请先在<a href="/settings" style={{ textDecoration: 'underline' }}>设置页面</a>设置当前年级，以便系统自动计算学期

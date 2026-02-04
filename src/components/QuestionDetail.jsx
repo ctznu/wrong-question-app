@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Button, Box, TextField, Grid, Card, CardContent, Paper, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Alert, Snackbar } from '@mui/material';
+import { Container, Typography, Button, Box, TextField, Grid, Card, CardContent, Paper, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Alert, Snackbar, FormControl, InputLabel, Checkbox, FormControlLabel, Stack } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Edit3, Save, X, RotateCcw, ArrowLeft, Lightbulb, Loader2, CheckCircle } from 'lucide-react';
 
@@ -21,6 +21,14 @@ const formatSemester = (semester) => {
   return `${getGradeLabel(grade)}-${semesterType}`;
 };
 
+const errorTypes = [
+  '计算错误',
+  '概念不清',
+  '审题错误',
+  '粗心大意',
+  '其他'
+];
+
 function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -33,6 +41,16 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
   const [generatedQuestions, setGeneratedQuestions] = useState([]);
   const [loadingGenerated, setLoadingGenerated] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, question: null, index: null });
+
+  const handleTagChange = (tag, checked) => {
+    const currentTags = editedQuestion.tags || [];
+    if (checked) {
+      setEditedQuestion({ ...editedQuestion, tags: [...currentTags, tag] });
+    } else {
+      setEditedQuestion({ ...editedQuestion, tags: currentTags.filter(t => t !== tag) });
+    }
+  };
 
   useEffect(() => {
     const q = questions.find(q => q._id === id || q.id === parseInt(id));
@@ -164,7 +182,8 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                {/* 正确答案和错误答案放在一行，各占50% */}
+                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                   <TextField
                     fullWidth
                     label="正确答案"
@@ -172,9 +191,8 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, correctAnswer: e.target.value })}
                     placeholder="请输入正确答案..."
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
+                    sx={{ flex: 1 }}
                   />
-                </Grid>
-                <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
                     label="错误答案"
@@ -182,9 +200,11 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, wrongAnswer: e.target.value })}
                     placeholder="请输入错误答案..."
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
+                    sx={{ flex: 1 }}
                   />
-                </Grid>
-                <Grid item xs={12}>
+                </Box>
+                {/* 错误原因单独占一行 */}
+                <Box sx={{ mb: 2 }}>
                   <TextField
                     fullWidth
                     label="错误原因"
@@ -195,32 +215,42 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     placeholder="请输入错误原因分析..."
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
                   />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="标签（用逗号分隔）"
-                    value={editedQuestion.tags?.join(', ') || ''}
-                    onChange={(e) => setEditedQuestion({ ...editedQuestion, tags: e.target.value.split(',').map(tag => tag.trim()) })}
-                    placeholder="请输入标签，用逗号分隔..."
-                    InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
+                </Box>
+                {/* 错误类型单独占一行，支持多选 */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
+                    错误类型
+                  </Typography>
+                  <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
+                    <FormControlLabel
+                      control={<Checkbox checked={editedQuestion.tags?.includes('计算错误')} onChange={(e) => handleTagChange('计算错误', e.target.checked)} />}
+                      label="计算错误"
+                    />
+                    <FormControlLabel
+                      control={<Checkbox checked={editedQuestion.tags?.includes('概念不清')} onChange={(e) => handleTagChange('概念不清', e.target.checked)} />}
+                      label="概念不清"
+                    />
+                    <FormControlLabel
+                      control={<Checkbox checked={editedQuestion.tags?.includes('审题错误')} onChange={(e) => handleTagChange('审题错误', e.target.checked)} />}
+                      label="审题错误"
+                    />
+                    <FormControlLabel
+                      control={<Checkbox checked={editedQuestion.tags?.includes('粗心大意')} onChange={(e) => handleTagChange('粗心大意', e.target.checked)} />}
+                      label="粗心大意"
+                    />
+                    <FormControlLabel
+                      control={<Checkbox checked={editedQuestion.tags?.includes('其他')} onChange={(e) => handleTagChange('其他', e.target.checked)} />}
+                      label="其他"
+                    />
+                  </Stack>
+                </Box>
+                <Grid item xs={12} sx={{ textAlign: 'center', mt: 2 }}>
                   <Button
                     variant="contained"
                     onClick={handleSave}
                     startIcon={<Save size={16} />}
-                    sx={{ mr: 2 }}
                   >
                     保存更改
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    onClick={() => setIsEditing(false)}
-                    startIcon={<X size={16} />}
-                  >
-                    取消
                   </Button>
                 </Grid>
               </Grid>
@@ -346,27 +376,9 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                         <Button
                           size="small"
                           color="error"
-                          onClick={async () => {
-                            if (window.confirm('确定要删除这个类似题目吗？')) {
-                              try {
-                                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions/${q._id}`, {
-                                  method: 'DELETE',
-                                });
-                                if (response.ok) {
-                                  setGeneratedQuestions(generatedQuestions.filter((_, i) => i !== idx));
-                                  setSnackbar({ open: true, message: '删除成功！', severity: 'success' });
-                                } else {
-                                  const data = await response.json();
-                                  setSnackbar({ open: true, message: data.message || '删除失败', severity: 'error' });
-                                }
-                              } catch (error) {
-                                console.error('删除失败:', error);
-                                setSnackbar({ open: true, message: '删除失败: ' + error.message, severity: 'error' });
-                              }
-                            }
-                          }}
+                          onClick={() => setDeleteDialog({ open: true, question: q, index: idx })}
                           startIcon={<X size={16} />}
-                          sx={{ ml: 1 }}
+                          sx={{ ml: 1, minWidth: '80px' }}
                         >
                           删除
                         </Button>
@@ -495,6 +507,50 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
               保存
             </Button>
           )}
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={deleteDialog.open}
+        onClose={() => setDeleteDialog({ ...deleteDialog, open: false })}
+        maxWidth="xs"
+      >
+        <DialogTitle>删除确认</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1">
+            确定要删除这个类似题目吗？
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setDeleteDialog({ ...deleteDialog, open: false })}
+          >
+            取消
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={async () => {
+              try {
+                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions/${deleteDialog.question._id}`, {
+                  method: 'DELETE',
+                });
+                if (response.ok) {
+                  setGeneratedQuestions(generatedQuestions.filter((_, i) => i !== deleteDialog.index));
+                  setSnackbar({ open: true, message: '删除成功！', severity: 'success' });
+                  setDeleteDialog({ ...deleteDialog, open: false });
+                } else {
+                  const data = await response.json();
+                  setSnackbar({ open: true, message: data.message || '删除失败', severity: 'error' });
+                }
+              } catch (error) {
+                console.error('删除失败:', error);
+                setSnackbar({ open: true, message: '删除失败: ' + error.message, severity: 'error' });
+              }
+            }}
+          >
+            删除
+          </Button>
         </DialogActions>
       </Dialog>
 
