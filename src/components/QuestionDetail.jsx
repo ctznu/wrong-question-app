@@ -30,16 +30,34 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
   const [similarQuestionDialog, setSimilarQuestionDialog] = useState(false);
   const [generatingSimilar, setGeneratingSimilar] = useState(false);
   const [similarQuestion, setSimilarQuestion] = useState(null);
+  const [generatedQuestions, setGeneratedQuestions] = useState([]);
+  const [loadingGenerated, setLoadingGenerated] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
-    // 查找问题，兼容MongoDB的_id和旧的id字段
     const q = questions.find(q => q._id === id || q.id === parseInt(id));
     if (q) {
       setQuestion(q);
       setEditedQuestion(q);
     }
   }, [id, questions]);
+
+  useEffect(() => {
+    const loadGeneratedQuestions = async () => {
+      if (question?._id || question?.id) {
+        try {
+          const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions/original/${question._id || question.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setGeneratedQuestions(data);
+          } else {
+            console.error('加载生成的类似题目失败');
+          }
+        }
+      }
+    };
+    loadGeneratedQuestions();
+  }, [question]);
 
   const handleSave = async () => {
     try {
@@ -307,6 +325,55 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
             {generatingSimilar ? '生成中...' : '生成类似题目'}
           </Button>
         </Paper>
+
+        {generatedQuestions.length > 0 && (
+          <Paper className="generated-questions-section" sx={{ mt: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              <CheckCircle size={20} style={{ verticalAlign: 'middle', marginRight: '8px', color: '#4caf50' }} />
+              已生成的类似题目
+            </Typography>
+            <Grid container spacing={2}>
+              {generatedQuestions.map((q, idx) => (
+                <Grid item xs={12} key={idx}>
+                  <Card>
+                    <CardContent>
+                      <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                        {q.question_text}
+                      </Typography>
+                      {q.options && q.options.length > 0 && (
+                        <Box sx={{ mb: 1 }}>
+                          {q.options.map((opt, optIdx) => (
+                            <Typography key={optIdx} variant="body2" sx={{ fontSize: '0.9rem' }}>
+                              {opt.key}. {opt.text}
+                            </Typography>
+                          ))}
+                        </Box>
+                      )}
+                      <Typography variant="body2" sx={{ color: '#4caf50', mb: 1 }}>
+                        <strong>正确答案：</strong>{q.correct_answer}
+                      </Typography>
+                      {q.explanation && (
+                        <Typography variant="body2" sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+                          <strong>解题思路：</strong>{q.explanation}
+                        </Typography>
+                      )}
+                      {q.target_error && (
+                        <Typography variant="body2" sx={{ fontSize: '0.85rem', color: '#f44336' }}>
+                          <strong>针对错误：</strong>{q.target_error}
+                        </Typography>
+                      )}
+                      {q.practice_point && (
+                        <Typography variant="body2" sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+                          <strong>练习知识点：</strong>{q.practice_point}
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Paper>
+        )}
       </Container>
 
       <Dialog
