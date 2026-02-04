@@ -53,6 +53,8 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
           } else {
             console.error('加载生成的类似题目失败');
           }
+        } catch (error) {
+          console.error('加载生成的类似题目失败:', error);
         }
       }
     };
@@ -327,7 +329,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
         </Paper>
 
         {generatedQuestions.length > 0 && (
-          <Paper className="generated-questions-section" sx={{ mt: 2 }}>
+          <Paper className="generated-questions-section" sx={{ mt: 2, p: 2 }}>
             <Typography variant="h6" gutterBottom>
               <CheckCircle size={20} style={{ verticalAlign: 'middle', marginRight: '8px', color: '#4caf50' }} />
               已生成的类似题目
@@ -337,9 +339,38 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                 <Grid item xs={12} key={idx}>
                   <Card>
                     <CardContent>
-                      <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 1 }}>
-                        {q.question_text}
-                      </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                        <Typography variant="body1" sx={{ fontWeight: 'bold', flex: 1 }}>
+                          {q.question_text}
+                        </Typography>
+                        <Button
+                          size="small"
+                          color="error"
+                          onClick={async () => {
+                            if (window.confirm('确定要删除这个类似题目吗？')) {
+                              try {
+                                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions/${q._id}`, {
+                                  method: 'DELETE',
+                                });
+                                if (response.ok) {
+                                  setGeneratedQuestions(generatedQuestions.filter((_, i) => i !== idx));
+                                  setSnackbar({ open: true, message: '删除成功！', severity: 'success' });
+                                } else {
+                                  const data = await response.json();
+                                  setSnackbar({ open: true, message: data.message || '删除失败', severity: 'error' });
+                                }
+                              } catch (error) {
+                                console.error('删除失败:', error);
+                                setSnackbar({ open: true, message: '删除失败: ' + error.message, severity: 'error' });
+                              }
+                            }
+                          }}
+                          startIcon={<X size={16} />}
+                          sx={{ ml: 1 }}
+                        >
+                          删除
+                        </Button>
+                      </Box>
                       {q.options && q.options.length > 0 && (
                         <Box sx={{ mb: 1 }}>
                           {q.options.map((opt, optIdx) => (
