@@ -341,7 +341,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     <CardContent>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                         <Typography variant="body1" sx={{ fontWeight: 'bold', flex: 1 }}>
-                          {q.question_text}
+                          {q.questionText}
                         </Typography>
                         <Button
                           size="small"
@@ -381,21 +381,21 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                         </Box>
                       )}
                       <Typography variant="body2" sx={{ color: '#4caf50', mb: 1 }}>
-                        <strong>正确答案：</strong>{q.correct_answer}
+                        <strong>正确答案：</strong>{q.correctAnswer}
                       </Typography>
                       {q.explanation && (
                         <Typography variant="body2" sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
                           <strong>解题思路：</strong>{q.explanation}
                         </Typography>
                       )}
-                      {q.target_error && (
+                      {q.targetError && (
                         <Typography variant="body2" sx={{ fontSize: '0.85rem', color: '#f44336' }}>
-                          <strong>针对错误：</strong>{q.target_error}
+                          <strong>针对错误：</strong>{q.targetError}
                         </Typography>
                       )}
-                      {q.practice_point && (
+                      {q.practicePoint && (
                         <Typography variant="body2" sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
-                          <strong>练习知识点：</strong>{q.practice_point}
+                          <strong>练习知识点：</strong>{q.practicePoint}
                         </Typography>
                       )}
                     </CardContent>

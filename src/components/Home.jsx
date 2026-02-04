@@ -32,7 +32,14 @@ function Home({ questions, deleteQuestion }) {
   const { user } = useAuth();
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('');
-  const [viewMode, setViewMode] = useState('card');
+  const [viewMode, setViewMode] = useState(() => {
+    return localStorage.getItem('viewMode') || 'card';
+  });
+
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem('viewMode', mode);
+  };
 
   const getSemesterOptions = () => {
     const currentGrade = user?.currentGrade;
@@ -107,7 +114,7 @@ function Home({ questions, deleteQuestion }) {
             {viewMode === 'table' ? (
               <Button
                 variant="contained"
-                onClick={() => setViewMode('card')}
+                onClick={() => handleViewModeChange('card')}
                 startIcon={<LayoutGrid size={16} />}
               >
                 卡片
@@ -115,7 +122,7 @@ function Home({ questions, deleteQuestion }) {
             ) : (
               <Button
                 variant="contained"
-                onClick={() => setViewMode('table')}
+                onClick={() => handleViewModeChange('table')}
                 startIcon={<LayoutList size={16} />}
               >
                 表格
