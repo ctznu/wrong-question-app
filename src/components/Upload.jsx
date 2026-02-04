@@ -426,19 +426,19 @@ function Upload({ addQuestion }) {
                   variant="contained"
                   onClick={handleQwenOCR}
                   disabled={loading}
-                  startIcon={loadingType === 'qwen' ? <CircularProgress size={20} /> : <QwenLogo />}
+
                   color="primary"
                 >
-                  {loadingType === 'qwen' ? '识别中...' : '千问识别'}
+                  {loadingType === 'qwen' ? '识别中...' : '云识别'}
                 </Button>
                 <Button
                   variant="contained"
                   onClick={handleDeepSeekOCR}
                   disabled={loading}
-                  startIcon={loadingType === 'deepseek' ? <CircularProgress size={20} /> : <DeepSeekLogo />}
+
                   sx={{ backgroundColor: '#4D6BFE', '&:hover': { backgroundColor: '#3D5BEE' }, '&:disabled': { backgroundColor: '#4D6BFE', opacity: 0.5 } }}
                 >
-                  {loadingType === 'deepseek' ? '识别中...' : 'Deepseek 识别'}
+                  {loadingType === 'deepseek' ? '识别中...' : '本地识别'}
                 </Button>
               </Box>
             )}

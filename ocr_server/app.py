@@ -676,18 +676,19 @@ def intelligent_analyze():
 
         print('[intelligent_analyze] 尝试使用智谱AI...')
         api_llm = get_available_api_llm()
-        print(f'[intelligent_analyze] 可用的 LLM: {type(api_llm).__name__ if api_llm else "None"}')
+        model_name = getattr(api_llm, 'vision_model', 'unknown') if api_llm else 'None'
+        print(f'[intelligent_analyze] 可用的 LLM: {model_name}')
         if api_llm:
             try:
-                print(f'[intelligent_analyze] 开始调用 {type(api_llm).__name__}...')
+                print(f'[intelligent_analyze] 开始调用 {model_name}...')
                 # 折中方案：调用 analyze_question（2次调用：识别+分析）
                 llm_result = api_llm.analyze_question('', saved_path)
                 result['llm_analysis'] = llm_result
-                result['llm_source'] = type(api_llm).__name__
-                print(f'[intelligent_analyze] {type(api_llm).__name__} 分析成功')
+                result['llm_source'] = model_name
+                print(f'[intelligent_analyze] {model_name} 分析成功')
             except Exception as e:
                 tb = traceback.format_exc()
-                print(f'[intelligent_analyze] {type(api_llm).__name__} 失败: {e}')
+                print(f'[intelligent_analyze] {model_name} 失败: {e}')
                 print(f'[intelligent_analyze] 错误详情:\n{tb}')
                 result['error'] = f'API LLM failed: {str(e)}'
 
