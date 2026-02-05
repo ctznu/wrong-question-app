@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const generatedQuestionSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   originalQuestionId: {
     type: mongoose.Schema.Types.Mixed,
     required: true

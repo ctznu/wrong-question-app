@@ -32,7 +32,17 @@ function Generator() {
 
   const fetchGeneratedQuestions = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/generated-questions`);
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['x-auth-token'] = token;
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/generated-questions`, {
+        headers
+      });
       if (response.ok) {
         const data = await response.json();
         setGeneratedQuestions(data);
@@ -99,8 +109,13 @@ function Generator() {
 
   const deleteQuestion = async (questionId) => {
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/generated-questions/${questionId}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        }
       });
 
       if (response.ok) {

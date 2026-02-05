@@ -65,7 +65,17 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
   const loadGeneratedQuestions = async () => {
     if (question?._id || question?.id) {
       try {
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions/original/${question._id || question.id}`);
+        const token = localStorage.getItem('token');
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['x-auth-token'] = token;
+        }
+        
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions/original/${question._id || question.id}`, {
+          headers
+        });
         if (response.ok) {
           const data = await response.json();
           setGeneratedQuestions(data);
@@ -535,10 +545,12 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     variant="outlined"
                     onClick={async () => {
                       try {
+                        const token = localStorage.getItem('token');
                         const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions`, {
                           method: 'POST',
                           headers: {
                             'Content-Type': 'application/json',
+                            'x-auth-token': token
                           },
                           body: JSON.stringify({
                             originalQuestionId: question._id || parseInt(id),
@@ -586,10 +598,12 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
               variant="contained"
               onClick={async () => {
                 try {
+                  const token = localStorage.getItem('token');
                   const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions`, {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
+                      'x-auth-token': token
                     },
                     body: JSON.stringify({
                       originalQuestionId: question._id || parseInt(id),
@@ -647,8 +661,13 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
             color="error"
             onClick={async () => {
               try {
+                const token = localStorage.getItem('token');
                 const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions/${deleteDialog.question._id}`, {
                   method: 'DELETE',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': token
+                  }
                 });
                 if (response.ok) {
                   setGeneratedQuestions(generatedQuestions.filter((_, i) => i !== deleteDialog.index));

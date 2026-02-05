@@ -68,7 +68,17 @@ function Printer({ questions }) {
 
   const loadGeneratedQuestions = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/generated-questions`);
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['x-auth-token'] = token;
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/generated-questions`, {
+        headers
+      });
       if (response.ok) {
         const data = await response.json();
         const map = {};
