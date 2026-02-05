@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Typography, Paper, Box, FormControl, InputLabel, Select, MenuItem, Button, Alert, TextField } from '@mui/material';
 import { Settings as SettingsIcon, Save } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,11 +14,20 @@ const grades = [
 
 function Settings() {
   const { user, updateUser } = useAuth();
+  const [username, setUsername] = useState(user?.username || '');
   const [studentName, setStudentName] = useState(user?.studentName || '');
   const [currentGrade, setCurrentGrade] = useState(user?.currentGrade || '');
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      setUsername(user.username || '');
+      setStudentName(user.studentName || '');
+      setCurrentGrade(user.currentGrade || '');
+    }
+  }, [user]);
 
   const handleSave = async () => {
     setLoading(true);
@@ -26,8 +35,6 @@ function Settings() {
     
     try {
       const token = localStorage.getItem('token');
-      console.log('Token:', token);
-      console.log('Saving data:', { studentName, currentGrade });
       
       const response = await fetch('http://localhost:5001/api/auth/update', {
         method: 'PUT',
@@ -35,19 +42,15 @@ function Settings() {
           'Content-Type': 'application/json',
           'x-auth-token': token
         },
-        body: JSON.stringify({ studentName, currentGrade })
+        body: JSON.stringify({ username, studentName, currentGrade })
       });
 
-      console.log('Response status:', response.status);
-      
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Error response:', errorData);
         throw new Error(errorData.msg || '保存失败');
       }
 
       const updatedUser = await response.json();
-      console.log('Updated user:', updatedUser);
       updateUser(updatedUser);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -75,8 +78,16 @@ function Settings() {
 
           <Box sx={{ mt: 3 }}>
             <Typography variant="h6" gutterBottom>
-              学生信息
+              用户信息
             </Typography>
+            
+            <TextField
+              fullWidth
+              label="用户名"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              sx={{ mt: 2 }}
+            />
             
             <TextField
               fullWidth
@@ -123,7 +134,7 @@ function Settings() {
 
             {saved && (
               <Alert severity="success" sx={{ mt: 2 }}>
-                设置已保存！学生姓名：{studentName || '未设置'}，当前年级：{getGradeLabel(currentGrade)}
+                设置已保存！用户名：{username || '未设置'}，学生姓名：{studentName || '未设置'}，当前年级：{getGradeLabel(currentGrade)}
               </Alert>
             )}
           </Box>

@@ -135,40 +135,44 @@ router.get('/me', async (req, res) => {
 router.put('/update', async (req, res) => {
   try {
     const token = req.header('x-auth-token');
-    console.log('Update request received, token:', token ? 'exists' : 'missing');
     
     if (!token) {
       return res.status(401).json({ msg: 'No token, authorization denied' });
     }
-
+    
     const decoded = jwt.verify(token, JWT_SECRET);
-    console.log('Decoded user id:', decoded.user.id);
-    const { studentName, currentGrade } = req.body;
-    console.log('Update data:', { studentName, currentGrade });
-
+    const { username, studentName, currentGrade } = req.body;
+    
     const user = await User.findById(decoded.user.id);
-    console.log('Found user:', user ? 'yes' : 'no');
     
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
     
+    if (username !== undefined) {
+      if (username !== user.username) {
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+          return res.status(400).json({ msg: '用户名已被使用' });
+        }
+      }
+      user.username = username;
+    }
     if (studentName !== undefined) {
       user.studentName = studentName;
     }
     if (currentGrade !== undefined) {
       user.currentGrade = currentGrade;
     }
-
-    console.log('Saving user...');
     await user.save();
-    console.log('User saved successfully');
-
+    
     const userWithoutPassword = await User.findById(decoded.user.id).select('-password');
     res.json(userWithoutPassword);
   } catch (err) {
-    console.error('Update error:', err.message);
-    console.error('Full error:', err);
+    console.error(err.message);
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ msg: err.message });
+    }
     res.status(500).json({ msg: err.message || 'Server Error' });
   }
 });
