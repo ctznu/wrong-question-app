@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Button, Box, TextField, Grid, Card, CardContent, Paper, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Alert, Snackbar, FormControl, InputLabel, Checkbox, FormControlLabel, Stack } from '@mui/material';
+import { Container, Typography, Button, Box, TextField, Card, CardContent, Paper, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Alert, Snackbar, FormControl, InputLabel, Checkbox, FormControlLabel, Stack } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Edit3, Save, X, RotateCcw, ArrowLeft, Lightbulb, Loader2, CheckCircle } from 'lucide-react';
 
@@ -169,8 +169,9 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
             )}
 
             {isEditing ? (
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
+              <Box>
+                {/* 题目内容单独占一行 */}
+                <Box sx={{ mb: 2 }}>
                   <TextField
                     fullWidth
                     label="题目内容"
@@ -181,7 +182,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     placeholder="请输入题目内容..."
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
                   />
-                </Grid>
+                </Box>
                 {/* 正确答案和错误答案放在一行，各占50% */}
                 <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                   <TextField
@@ -209,7 +210,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     fullWidth
                     label="错误原因"
                     multiline
-                    rows={3}
+                    rows={4}
                     value={editedQuestion.reason || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, reason: e.target.value })}
                     placeholder="请输入错误原因分析..."
@@ -244,7 +245,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     />
                   </Stack>
                 </Box>
-                <Grid item xs={12} sx={{ textAlign: 'center', mt: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                   <Button
                     variant="contained"
                     onClick={handleSave}
@@ -252,8 +253,8 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   >
                     保存更改
                   </Button>
-                </Grid>
-              </Grid>
+                </Box>
+              </Box>
             ) : (
               <Box>
                 <Typography variant="h6" gutterBottom>
@@ -279,24 +280,24 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   </Box>
                 )}
 
-                <Grid container spacing={2} sx={{ mt: 1 }}>
-                  <Grid item xs={12} sm={6}>
+                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                  <Box sx={{ flex: 1 }}>
                     <Typography variant="h6" color="primary" gutterBottom>
                       <strong>正确答案：</strong>
                     </Typography>
                     <Typography variant="body1" paragraph>
                       {question.correctAnswer}
                     </Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
                     <Typography variant="h6" color="error" gutterBottom>
                       <strong>错误答案：</strong>
                     </Typography>
                     <Typography variant="body1" paragraph>
                       {question.wrongAnswer}
                     </Typography>
-                  </Grid>
-                </Grid>
+                  </Box>
+                </Box>
 
                 <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
                   <strong>错误原因：</strong>
@@ -323,18 +324,18 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   ))}
                 </Box>
 
-                <Grid container spacing={2} sx={{ mt: 1 }}>
-                  <Grid item xs={12} sm={6}>
+                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                  <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" color="text.secondary">
                       <strong>学期：</strong> {formatSemester(question.semester)}
                     </Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" color="text.secondary">
                       <strong>创建时间：</strong> {question.createdAt}
                     </Typography>
-                  </Grid>
-                </Grid>
+                  </Box>
+                </Box>
               </Box>
             )}
           </CardContent>
@@ -364,10 +365,9 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
               <CheckCircle size={20} style={{ verticalAlign: 'middle', marginRight: '8px', color: '#4caf50' }} />
               已生成的类似题目
             </Typography>
-            <Grid container spacing={2}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {generatedQuestions.map((q, idx) => (
-                <Grid item xs={12} key={idx}>
-                  <Card>
+                <Card key={idx}>
                     <CardContent>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                         <Typography variant="body1" sx={{ fontWeight: 'bold', flex: 1 }}>
@@ -412,9 +412,8 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                       )}
                     </CardContent>
                   </Card>
-                </Grid>
               ))}
-            </Grid>
+            </Box>
           </Paper>
         )}
       </Container>
