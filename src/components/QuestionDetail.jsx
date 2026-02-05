@@ -62,22 +62,23 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
     }
   }, [id, questions]);
 
-  useEffect(() => {
-    const loadGeneratedQuestions = async () => {
-      if (question?._id || question?.id) {
-        try {
-          const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions/original/${question._id || question.id}`);
-          if (response.ok) {
-            const data = await response.json();
-            setGeneratedQuestions(data);
-          } else {
-            console.error('加载生成的类似题目失败');
-          }
-        } catch (error) {
-          console.error('加载生成的类似题目失败:', error);
+  const loadGeneratedQuestions = async () => {
+    if (question?._id || question?.id) {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions/original/${question._id || question.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setGeneratedQuestions(data);
+        } else {
+          console.error('加载生成的类似题目失败');
         }
+      } catch (error) {
+        console.error('加载生成的类似题目失败:', error);
       }
-    };
+    }
+  };
+
+  useEffect(() => {
     loadGeneratedQuestions();
   }, [question]);
 
@@ -137,6 +138,22 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
       alert('生成类似题目失败: ' + error.message);
     } finally {
       setGeneratingSimilar(false);
+    }
+  };
+
+  const loadGeneratedQuestions = async () => {
+    if (question?._id || question?.id) {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions/original/${question._id || question.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setGeneratedQuestions(data);
+        } else {
+          console.error('加载生成的类似题目失败');
+        }
+      } catch (error) {
+        console.error('加载生成的类似题目失败:', error);
+      }
     }
   };
 
@@ -552,6 +569,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
 
                         if (response.ok) {
                           setSnackbar({ open: true, message: `题目 ${idx + 1} 保存成功！`, severity: 'success' });
+                          await loadGeneratedQuestions();
                         } else {
                           const data = await response.json();
                           setSnackbar({ open: true, message: data.message || '保存失败', severity: 'error' });
@@ -605,6 +623,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     setSimilarQuestionDialog(false);
                     setSimilarQuestion(null);
                     setSimilarQuestions([]);
+                    await loadGeneratedQuestions();
                   } else {
                     const data = await response.json();
                     setSnackbar({ open: true, message: data.message || '保存失败', severity: 'error' });
