@@ -10,14 +10,15 @@
 - 🔄 **类似题目生成**：根据错题自动生成类似题目供练习
 - 📊 **统计分析**：统计错题类型、科目分布、错误趋势
 - 👤 **用户认证**：支持注册和登录功能
+- 📱 **视图模式持久化**：支持卡片和表格视图切换
 
 ## 技术栈
 
 ### 前端
 - **React** - UI 框架
 - **React Router** - 路由管理
+- **Material-UI** - UI 组件库
 - **Axios** - HTTP 客户端
-- **Context API** - 状态管理
 
 ### 后端
 - **Node.js** - 运行时环境
@@ -27,9 +28,8 @@
 
 ### OCR 服务
 - **Python/Flask** - OCR 服务
-- **通义千问 (qwen-vl-max)** - 视觉模型，用于 OCR 和题目分析
-- **DeepSeek** - 文本模型，用于题目生成
-- **智谱 AI** - 备用 AI 服务
+- **智谱AI** - 云端 AI 服务（glm-4.6v-flash）
+- **DeepSeek** - 本地 LLM 模型（可选）
 - **Tesseract OCR** - 本地 OCR 备用方案
 
 ## 项目结构
@@ -38,10 +38,11 @@
 wrong-question-app/
 ├── client/                 # 前端 React 应用
 │   ├── public/
-│   └── src/
-│       ├── components/   # React 组件
-│       ├── contexts/     # Context API
-│       └── ...
+│   ├── src/
+│   │   ├── components/   # React 组件
+│   │   ├── contexts/     # Context API
+│   │   └── ...
+│   └── ...
 ├── server/                # 后端 Node.js 服务器
 │   ├── models/       # 数据模型
 │   ├── routes/       # API 路由
@@ -50,20 +51,20 @@ wrong-question-app/
 ├── ocr_server/           # OCR Python 服务
 │   ├── api_llm_client.py  # AI 客户端
 │   ├── llm_client.py      # LLM 客户端
-│   └── app.py           # Flask 应用
-└── requirements.md         # 项目依赖说明
+│   ├── app.py           # Flask 应用
+│   └── requirements.md         # 项目依赖说明
+└── README.md             # 项目说明
 ```
 
 ## 快速开始
 
 ### 环境要求
-
 - Node.js 18+
 - Python 3.8+
 - MongoDB 4.4+
+- npm 或 yarn
 
 ### 安装依赖
-
 #### 前端和后端
 ```bash
 npm install
@@ -76,18 +77,17 @@ pip install -r requirements.txt
 ```
 
 ### 配置环境变量
-
 创建 `.env` 文件（参考 `.env.example`）：
 
 ```bash
-# 通义千问 API 密钥
+# 通用 API 密钥
 TONGYI_API_KEY=your_tongyi_api_key_here
-
-# DeepSeek API 密钥
 DEEPSEEK_API_KEY=your_deepseek_api_key_here
-
-# 智谱 AI API 密钥
 ZHIPU_API_KEY=your_zhipu_api_key_here
+
+# 模型配置
+ZHIPU_VISION_MODEL=glm-4.6v
+ZHIPU_ANALYSIS_MODEL=glm-4.7-flash
 
 # Ollama 模型（可选）
 OLLAMA_MODEL=qwen2.5-vl:7b
@@ -97,21 +97,10 @@ API_TIMEOUT=60
 ```
 
 ### 启动服务
-
-#### 启动前端和后端
+#### 启动后端
 ```bash
-# 终端 1：启动后端
 cd server
 npm start
-
-# 终端 2：启动前端
-npm start
-```
-
-#### 启动 OCR 服务
-```bash
-cd ocr_server
-python app.py
 ```
 
 服务将在以下端口运行：
@@ -119,39 +108,41 @@ python app.py
 - 后端：http://localhost:5001
 - OCR 服务：http://localhost:5000
 
+#### 启动 OCR 服务
+```bash
+cd ocr_server
+python app.py
+```
+
 ## 使用说明
 
 ### 1. 用户注册和登录
-
 首次使用需要注册账号：
 1. 打开应用，点击"注册"
 2. 填写用户名、密码和邮箱
 3. 注册后登录
 
 ### 2. 上传错题图片
-
 1. 点击"上传错题"或"开始识别"
 2. 选择或拖拽错题图片
-3. 系统自动识别题目内容
+3. 系统自动识别题目内容、正确答案、学生答案、错误原因等
 
 ### 3. 查看识别结果
-
 系统会自动分析并显示：
 - 题目内容
 - 题目类型（选择题、填空题等）
 - 正确答案
 - 学生答案
 - 错误原因分析
+- 错误类型（计算错误、概念不清、审题错误、粗心大意）
 - 难度等级
 
 ### 4. 生成类似题目
-
-1. 点击"生成类似题目"
+1. 在错题详情页面点击"生成类似题目"
 2. AI 自动生成 3 道类似题目
 3. 可用于练习巩固
 
 ### 5. 查看统计
-
 在"统计"页面查看：
 - 错题类型分布
 - 科目分布
@@ -161,7 +152,6 @@ python app.py
 ## API 端点
 
 ### OCR 服务
-
 #### `POST /ocr`
 使用 Tesseract OCR 识别图片（备用方案）
 
@@ -171,11 +161,10 @@ python app.py
 #### `POST /intelligent_analyze`
 使用智谱AI视觉模型智能分析题目（推荐）
 
-#### `POST /generate_similar`
+#### `POST /generate_similar_question`
 生成类似题目
 
 ### 后端 API
-
 #### 认证
 - `POST /api/auth/register` - 用户注册
 - `POST /api/auth/login` - 用户登录
@@ -197,10 +186,10 @@ python app.py
 
 - [ ] 支持批量上传图片
 - [ ] 添加错题标签功能
-- [ ] 支持错题分享功能
 - [ ] 添加学习进度追踪
-- [ ] 支持导出 PDF
+- [ ] 支持错题分享功能
 - [ ] 添加错题本模板
+- [ ] 支持导出 PDF
 
 ## 贡献指南
 
