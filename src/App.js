@@ -60,6 +60,8 @@ const MainApp = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+      console.log('[fetchQuestions] 当前用户:', user);
+      console.log('[fetchQuestions] 当前token:', token);
       const headers = {
         'Content-Type': 'application/json',
       };
@@ -72,13 +74,14 @@ const MainApp = () => {
       });
       if (!response.ok) {
         if (response.status === 401) {
-          // Token过期或无效，登出用户
           logout();
           return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
+      console.log('[fetchQuestions] 获取到的题目数量:', data.questions?.length);
+      console.log('[fetchQuestions] 题目详情:', data.questions);
       setQuestions(data.questions || []);
       setError(null);
     } catch (err) {
@@ -205,7 +208,7 @@ const MainApp = () => {
 
   useEffect(() => {
     fetchQuestions();
-  }, []);
+  }, [user]);
 
   if (loading) {
     return (

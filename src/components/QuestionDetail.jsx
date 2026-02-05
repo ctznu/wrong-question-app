@@ -141,22 +141,6 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
     }
   };
 
-  const loadGeneratedQuestions = async () => {
-    if (question?._id || question?.id) {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions/original/${question._id || question.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setGeneratedQuestions(data);
-        } else {
-          console.error('加载生成的类似题目失败');
-        }
-      } catch (error) {
-        console.error('加载生成的类似题目失败:', error);
-      }
-    }
-  };
-
   if (!question) return <Typography>加载中...</Typography>;
 
   return (

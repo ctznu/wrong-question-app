@@ -226,15 +226,13 @@ function Home({ questions, deleteQuestion }) {
                       <TableCell>{formatSemester(question.semester)}</TableCell>
                       <TableCell>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {question.tags && question.tags.length > 0 && question.tags.slice(0, 2).map((tag, index) => (
-                            tag && (
-                              <Chip
-                                key={index}
-                                label={tag}
-                                size="small"
-                                variant="outlined"
-                              />
-                            )
+                          {question.tags && question.tags.filter(tag => tag && tag.trim()).slice(0, 2).map((tag, index) => (
+                            <Chip
+                              key={index}
+                              label={tag}
+                              size="small"
+                              variant="outlined"
+                            />
                           ))}
                         </Box>
                       </TableCell>
