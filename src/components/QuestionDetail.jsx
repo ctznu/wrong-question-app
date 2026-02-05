@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Button, Box, TextField, Card, CardContent, Paper, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Alert, Snackbar, FormControl, InputLabel, Checkbox, FormControlLabel, Stack } from '@mui/material';
+import { Container, Typography, Button, Box, TextField, Card, CardContent, Paper, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Alert, Snackbar, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, Stack } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Edit3, Save, X, RotateCcw, ArrowLeft, Lightbulb, Loader2, CheckCircle } from 'lucide-react';
 
@@ -38,10 +38,12 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
   const [similarQuestionDialog, setSimilarQuestionDialog] = useState(false);
   const [generatingSimilar, setGeneratingSimilar] = useState(false);
   const [similarQuestion, setSimilarQuestion] = useState(null);
+  const [similarQuestions, setSimilarQuestions] = useState([]);
   const [generatedQuestions, setGeneratedQuestions] = useState([]);
   const [loadingGenerated, setLoadingGenerated] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [deleteDialog, setDeleteDialog] = useState({ open: false, question: null, index: null });
+  const [generateCount, setGenerateCount] = useState(1);
 
   const handleTagChange = (tag, checked) => {
     const currentTags = editedQuestion.tags || [];
@@ -98,7 +100,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
     setGeneratingSimilar(true);
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/generate_similar_question', {
+      const response = await fetch('http://127.0.0.1:5000/generate_similar_questions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -110,7 +112,8 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
           errorType: question.tags,
           errorReason: question.reason,
           subject: question.subject,
-          questionType: 'short_answer'
+          questionType: 'short_answer',
+          count: generateCount
         }),
       });
 
@@ -119,8 +122,16 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
         throw new Error(data.error || '生成类似题目失败');
       }
 
-      setSimilarQuestion(data.similar_question);
-      setSimilarQuestionDialog(true);
+      if (data.similar_questions && data.similar_questions.length > 0) {
+        if (data.similar_questions.length === 1) {
+          setSimilarQuestion(data.similar_questions[0]);
+          setSimilarQuestionDialog(true);
+        } else {
+          setSimilarQuestionDialog(true);
+          setSimilarQuestion(null);
+          setSimilarQuestions(data.similar_questions);
+        }
+      }
     } catch (error) {
       console.error('生成类似题目失败:', error);
       alert('生成类似题目失败: ' + error.message);
@@ -347,16 +358,31 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
             类似练习题
           </Typography>
 
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={handleGenerate}
-            disabled={generatingSimilar}
-            startIcon={generatingSimilar ? <Loader2 size={16} className="spin" /> : <Lightbulb size={16} />}
-            sx={{ mt: 2 }}
-          >
-            {generatingSimilar ? '生成中...' : '生成类似题目'}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 2 }}>
+            <FormControl sx={{ minWidth: 120 }}>
+              <InputLabel sx={{ bgcolor: 'white', px: 0.5 }}>生成数量</InputLabel>
+              <Select
+                value={generateCount}
+                label="生成数量"
+                onChange={(e) => setGenerateCount(e.target.value)}
+                disabled={generatingSimilar}
+              >
+                <MenuItem value={1}>1道</MenuItem>
+                <MenuItem value={2}>2道</MenuItem>
+                <MenuItem value={3}>3道</MenuItem>
+                <MenuItem value={5}>5道</MenuItem>
+              </Select>
+            </FormControl>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleGenerate}
+              disabled={generatingSimilar}
+              startIcon={generatingSimilar ? <Loader2 size={16} className="spin" /> : <Lightbulb size={16} />}
+            >
+              {generatingSimilar ? '生成中...' : '生成类似题目'}
+            </Button>
+          </Box>
         </Paper>
 
         {generatedQuestions.length > 0 && (
@@ -420,7 +446,11 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
 
       <Dialog
         open={similarQuestionDialog}
-        onClose={() => setSimilarQuestionDialog(false)}
+        onClose={() => {
+          setSimilarQuestionDialog(false);
+          setSimilarQuestion(null);
+          setSimilarQuestions([]);
+        }}
         maxWidth="md"
         fullWidth
       >
@@ -463,12 +493,93 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
               </Typography>
             </Box>
           )}
+          {similarQuestions && similarQuestions.length > 0 && (
+            <Box>
+              {similarQuestions.map((q, idx) => (
+                <Box key={idx} sx={{ mb: 3, pb: 3, borderBottom: idx < similarQuestions.length - 1 ? '1px solid #e0e0e0' : 'none' }}>
+                  <Typography variant="h6" sx={{ mb: 1 }}>
+                    题目 {idx + 1}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mb: 2, fontWeight: 'bold' }}>
+                    {q.question_text}
+                  </Typography>
+                  {q.options && q.options.length > 0 && (
+                    <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                      {q.options.map((opt, optIdx) => (
+                        <Typography key={optIdx} variant="body2" sx={{ 
+                          mb: 1,
+                          flex: '0 0 auto',
+                          textAlign: 'left',
+                          wordWrap: 'break-word',
+                          overflowWrap: 'break-word'
+                        }}>
+                          {opt.key}. {opt.text}
+                        </Typography>
+                      ))}
+                    </Box>
+                  )}
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    <strong>正确答案：</strong>{q.correct_answer}
+                  </Alert>
+                  <Typography variant="body2" sx={{ mb: 2 }}>
+                    <strong>解题思路：</strong>{q.explanation}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 2 }}>
+                    <strong>针对错误：</strong>{q.target_error}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>练习知识点：</strong>{q.practice_point}
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            originalQuestionId: question._id || parseInt(id),
+                            questionText: q.question_text,
+                            options: q.options || [],
+                            correctAnswer: q.correct_answer,
+                            explanation: q.explanation,
+                            targetError: q.target_error,
+                            practicePoint: q.practice_point
+                          }),
+                        });
+
+                        if (response.ok) {
+                          setSnackbar({ open: true, message: `题目 ${idx + 1} 保存成功！`, severity: 'success' });
+                        } else {
+                          const data = await response.json();
+                          setSnackbar({ open: true, message: data.message || '保存失败', severity: 'error' });
+                        }
+                      } catch (error) {
+                        console.error('保存失败:', error);
+                        setSnackbar({ open: true, message: '保存失败: ' + error.message, severity: 'error' });
+                      }
+                    }}
+                    startIcon={<Save size={16} />}
+                    sx={{ mt: 1 }}
+                  >
+                    保存题目 {idx + 1}
+                  </Button>
+                </Box>
+              ))}
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSimilarQuestionDialog(false)}>
+          <Button onClick={() => {
+            setSimilarQuestionDialog(false);
+            setSimilarQuestion(null);
+            setSimilarQuestions([]);
+          }}>
             关闭
           </Button>
-          {similarQuestion && (
+          {similarQuestion && similarQuestions.length === 0 && (
             <Button
               variant="contained"
               onClick={async () => {
@@ -492,6 +603,8 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   if (response.ok) {
                     setSnackbar({ open: true, message: '类似题目保存成功！', severity: 'success' });
                     setSimilarQuestionDialog(false);
+                    setSimilarQuestion(null);
+                    setSimilarQuestions([]);
                   } else {
                     const data = await response.json();
                     setSnackbar({ open: true, message: data.message || '保存失败', severity: 'error' });

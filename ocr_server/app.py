@@ -876,6 +876,61 @@ def generate_similar_question():
         return jsonify({'error': str(e), 'traceback': tb}), 500
 
 
+@app.route('/generate_similar_questions', methods=['POST'])
+def generate_similar_questions():
+    """
+    批量生成类似题目端点
+    根据学生的错误类型，一次性生成多道针对性的练习题
+    """
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({'error': 'no data provided'}), 400
+
+        count = data.get('count', 1)
+        if count < 1 or count > 10:
+            return jsonify({'error': 'count must be between 1 and 10'}), 400
+
+        question_data = {
+            'question_text': data.get('question', ''),
+            'student_answer': data.get('studentAnswer', ''),
+            'correct_answer': data.get('correctAnswer', ''),
+            'error_type': data.get('errorType', 'none'),
+            'error_reason': data.get('errorReason', ''),
+            'subject': data.get('subject', 'unknown'),
+            'question_type': data.get('questionType', 'short_answer')
+        }
+
+        print(f'[generate_similar_questions] 批量生成 {count} 道类似题目: {question_data["question_text"][:50]}...')
+
+        api_llm = get_available_api_llm()
+        if not api_llm:
+            return jsonify({
+                'error': 'No cloud LLM available',
+                'message': '请配置云LLM API密钥（智谱AI）以启用智能分析'
+            }), 400
+
+        similar_questions = []
+        for i in range(count):
+            print(f'[generate_similar_questions] 生成第 {i+1}/{count} 道题目...')
+            similar_question = api_llm.generate_similar_question(question_data)
+            similar_questions.append(similar_question)
+
+        print(f'[generate_similar_questions] 批量生成成功，共 {len(similar_questions)} 道题目')
+
+        return jsonify({
+            'success': True,
+            'similar_questions': similar_questions
+        })
+
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(f'[generate_similar_questions] 错误: {e}')
+        print(f'[generate_similar_questions] 错误详情:\n{tb}')
+        return jsonify({'error': str(e), 'traceback': tb}), 500
+
+
 def merge_vision_and_reasoning(ocr_result: Dict, vision_analysis: Dict, reasoning_analysis: Dict) -> Dict:
     """
     合并视觉识别和推理分析结果
