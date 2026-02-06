@@ -19,6 +19,16 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkUser = async () => {
       const storedToken = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+      
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          console.error('Error parsing stored user:', e);
+        }
+      }
+      
       if (storedToken) {
         setToken(storedToken);
         try {
@@ -31,15 +41,17 @@ export const AuthProvider = ({ children }) => {
           if (response.ok) {
             const userData = await response.json();
             setUser(userData);
+            localStorage.setItem('user', JSON.stringify(userData));
           } else {
-            // Token无效，清除它
             localStorage.removeItem('token');
+            localStorage.removeItem('user');
             setToken(null);
             setUser(null);
           }
         } catch (error) {
           console.error('Error checking user:', error);
           localStorage.removeItem('token');
+          localStorage.removeItem('user');
           setToken(null);
           setUser(null);
         }
@@ -59,7 +71,11 @@ export const AuthProvider = ({ children }) => {
 
   const updateUser = (userData) => {
     console.log('Update user:', userData);
-    setUser(prevUser => ({ ...prevUser, ...userData }));
+    setUser(prevUser => {
+      const updatedUser = { ...prevUser, ...userData };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      return updatedUser;
+    });
   };
 
   const logout = () => {

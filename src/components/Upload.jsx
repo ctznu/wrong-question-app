@@ -471,7 +471,7 @@ function Upload({ addQuestion }) {
                 </Alert>
               )}
 
-              {!localStorage.getItem('currentGrade') && (
+              {!user?.currentGrade && (
                 <Alert severity="info" sx={{ mb: 2 }}>
                   请先在<a href="/settings" style={{ textDecoration: 'underline' }}>设置页面</a>设置当前年级，以便系统自动计算学期
                 </Alert>

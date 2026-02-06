@@ -3,6 +3,7 @@ import { Container, Typography, Button, Box, FormControl, InputLabel, Select, Me
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Download, Printer as PrinterIcon, Filter, BookOpen, ChevronDown, ChevronRight } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE_URL = 'http://localhost:5001/api';
 
@@ -30,8 +31,7 @@ const formatSemester = (semester) => {
   return `${getGradeLabel(grade)}-${semesterType}`;
 };
 
-const getSemesterOptions = () => {
-  const currentGrade = localStorage.getItem('currentGrade');
+const getSemesterOptions = (currentGrade) => {
   if (!currentGrade) return [];
   
   const now = new Date();
@@ -51,6 +51,7 @@ const getSemesterOptions = () => {
 };
 
 function Printer({ questions }) {
+  const { user } = useAuth();
   const [selectedQuestions, setSelectedQuestions] = useState(new Set());
   const [selectedGeneratedQuestions, setSelectedGeneratedQuestions] = useState(new Set());
   const [selectedSubject, setSelectedSubject] = useState('');
@@ -60,7 +61,7 @@ function Printer({ questions }) {
   const [generatedQuestionsMap, setGeneratedQuestionsMap] = useState({});
   const [expandedQuestions, setExpandedQuestions] = useState(new Set());
 
-  const semesters = getSemesterOptions();
+  const semesters = getSemesterOptions(user?.currentGrade);
 
   useEffect(() => {
     loadGeneratedQuestions();
