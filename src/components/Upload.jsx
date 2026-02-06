@@ -462,11 +462,11 @@ function Upload({ addQuestion }) {
                 </Alert>
               )}
 
-              {parsedResult && parsedResult.reasoning_steps && (
+              {parsedResult && parsedResult.reasoningSteps && (
                 <Alert severity="info" sx={{ mb: 2 }}>
                   <strong>推理步骤：</strong><br/>
                   <Typography variant="body2" sx={{ whiteSpace: 'pre-line', mt: 1 }}>
-                    {parsedResult.reasoning_steps}
+                    {parsedResult.reasoningSteps}
                   </Typography>
                 </Alert>
               )}

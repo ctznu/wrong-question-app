@@ -104,7 +104,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
 
   const handleGenerate = async () => {
     if (!question.question || !question.correctAnswer || !question.tags) {
-      alert('请先完善错题信息（题目、正确答案、错误类型）');
+      setSnackbar({ open: true, message: '请先完善错题信息（题目、正确答案、错误类型）', severity: 'warning' });
       return;
     }
 
@@ -145,7 +145,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
       }
     } catch (error) {
       console.error('生成类似题目失败:', error);
-      alert('生成类似题目失败: ' + error.message);
+      setSnackbar({ open: true, message: '生成类似题目失败: ' + error.message, severity: 'error' });
     } finally {
       setGeneratingSimilar(false);
     }
