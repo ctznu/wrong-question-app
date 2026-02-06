@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-class BaseAPILLM(ABC):
+class QuestionAnalyzer(ABC):
     """API LLM 基类"""
 
     @abstractmethod
@@ -36,7 +36,7 @@ class BaseAPILLM(ABC):
         pass
 
 
-class ZhipuLLM(BaseAPILLM):
+class ZhipuLLM(QuestionAnalyzer):
     """智谱AI API"""
 
     def __init__(self):
@@ -244,7 +244,25 @@ class ZhipuLLM(BaseAPILLM):
             try:
                 result = json.loads(json_match.group(0))
                 result['raw_response'] = text
-                return result
+                return {
+                    'is_question': result.get('is_question', False),
+                    'subject': result.get('subject', 'unknown'),
+                    'questionType': result.get('question_type', 'unknown'),
+                    'question': result.get('question_text', ''),
+                    'options': result.get('options', []),
+                    'correctAnswer': result.get('correct_answer', ''),
+                    'difficulty': result.get('difficulty', 'medium'),
+                    'studentAnswer': result.get('student_answer', ''),
+                    'studentAnswerBbox': result.get('student_answer_bbox', {}),
+                    'isWrong': result.get('is_wrong', False),
+                    'errorType': result.get('error_type', 'none'),
+                    'errorReason': result.get('error_reason', ''),
+                    'explanation': result.get('explanation', ''),
+                    'reasoningSteps': result.get('reasoning_steps', ''),
+                    'grade': result.get('grade', ''),
+                    'semester': result.get('semester', ''),
+                    'confidence': result.get('confidence', 0.95)
+                }
             except json.JSONDecodeError as e:
                 print(f'[ZhipuLLM] JSON解析失败: {e}')
 
@@ -348,19 +366,671 @@ class ZhipuLLM(BaseAPILLM):
         }
 
 
+class TongyiLLM(QuestionAnalyzer):
+    """通义千问 API"""
+
+    def __init__(self):
+        self.api_key = os.getenv('TONGYI_API_KEY', '')
+        self.base_url = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
+        self.model = os.getenv('TONGYI_MODEL', 'qwen-vl-max')
+        self.vision_model = self.model
+        self.analysis_model = self.model
+        self.timeout = int(os.getenv('API_TIMEOUT', '60'))
+        self.max_retries = 3
+        self.retry_delay = 2
+
+    def is_available(self) -> bool:
+        return bool(self.api_key)
+
+    def analyze_question(self, ocr_text: str, image_path: Optional[str] = None) -> Dict:
+        """分析题目：2次调用（识别+分析）"""
+        print(f'[TongyiLLM] 开始分析...')
+
+        if not image_path:
+            raise Exception("需要提供图片路径")
+
+        # 第1次调用：识别图片中的文字
+        print(f'[TongyiLLM] 第1步：识别图片文字...')
+        ocr_result = self._recognize_text(image_path)
+
+        # 第2次调用：分析题目和答案
+        print(f'[TongyiLLM] 第2步：分析题目和答案，使用模型 {self.analysis_model}...')
+        analysis_result = self._analyze_text(ocr_result)
+
+        # 合并结果
+        result = {**analysis_result, 'ocr_text': ocr_result}
+        print(f'[TongyiLLM] 分析完成')
+        return result
+
+    def _recognize_text(self, image_path: str) -> str:
+        """识别图片中的文字"""
+        with open(image_path, 'rb') as f:
+            image_data = f.read()
+        image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+        headers = {
+            'Authorization': f'Bearer {self.api_key}',
+            'Content-Type': 'application/json'
+        }
+
+        prompt = "识别图片中的所有文字，区分手写体和印刷体。手写体是学生答案，印刷体是题目。只输出识别到的文字，不做任何推理、补充、添加或修改。绝对不要添加'三角形'、'条'、'个'、'道'等额外词汇。"
+
+        data = {
+            'model': self.vision_model,
+            'input': {
+                'messages': [
+                    {
+                        'role': 'user',
+                        'content': [
+                            {'type': 'image', 'image': f'data:image/jpeg;base64,{image_base64}'},
+                            {'type': 'text', 'text': prompt}
+                        ]
+                    }
+                ]
+            }
+        }
+
+        for retry in range(self.max_retries):
+            try:
+                response = requests.post(self.base_url, headers=headers, json=data, timeout=self.timeout)
+
+                if response.status_code == 429:
+                    wait_time = self.retry_delay * (2 ** retry)
+                    print(f'[TongyiLLM] API 速率限制 (429)，{wait_time}秒后重试...')
+                    time.sleep(wait_time)
+                    continue
+
+                if response.status_code != 200:
+                    raise Exception(f"通义千问 API error: {response.status_code}")
+
+                result = response.json()
+                content = result.get('output', {}).get('choices', [{}])[0].get('message', {}).get('content', [{}])[0].get('text', '')
+                
+                print(f'[TongyiLLM] 识别到的文字: {content[:200]}')
+                return content
+            except Exception as e:
+                if retry == self.max_retries - 1:
+                    raise
+                print(f'[TongyiLLM] 调用失败 (重试 {retry+1}/{self.max_retries}): {e}')
+                time.sleep(self.retry_delay)
+        
+        raise Exception("识别文字失败")
+
+    def _analyze_text(self, ocr_text: str) -> Dict:
+        """分析题目和答案"""
+        prompt = self._build_analysis_prompt(ocr_text)
+
+        headers = {
+            'Authorization': f'Bearer {self.api_key}',
+            'Content-Type': 'application/json'
+        }
+
+        data = {
+            'model': self.analysis_model,
+            'input': {
+                'messages': [
+                    {
+                        'role': 'user',
+                        'content': [
+                            {'type': 'text', 'text': prompt}
+                        ]
+                    }
+                ]
+            }
+        }
+
+        for retry in range(self.max_retries):
+            try:
+                response = requests.post(self.base_url, headers=headers, json=data, timeout=self.timeout)
+
+                if response.status_code == 429:
+                    wait_time = self.retry_delay * (2 ** retry)
+                    print(f'[TongyiLLM] API 速率限制 (429)，{wait_time}秒后重试...')
+                    time.sleep(wait_time)
+                    continue
+
+                if response.status_code != 200:
+                    raise Exception(f"通义千问 API error: {response.status_code}")
+
+                result = response.json()
+                content = result.get('output', {}).get('choices', [{}])[0].get('message', {}).get('content', [{}])[0].get('text', '')
+                
+                print(f'[TongyiLLM] API 原始响应: {content[:500]}')
+                
+                content = content.strip()
+                if content.startswith('```'):
+                    content = content.split('```')[1]
+                    if content.startswith('json'):
+                        content = content[4:].strip()
+                
+                json_match = re.search(r'\{[\s\S]*\}', content, re.DOTALL)
+                if json_match:
+                    try:
+                        parsed = json.loads(json_match.group())
+                        parsed['raw_response'] = content
+                        print(f'[TongyiLLM] 解析成功: {parsed}')
+                        return parsed
+                    except json.JSONDecodeError as e:
+                        print(f'[TongyiLLM] JSON 解析失败: {e}')
+                        print(f'[TongyiLLM] JSON 内容: {json_match.group()}')
+                        return {
+                            'raw_response': content,
+                            'error': f'JSON 解析失败: {str(e)}'
+                        }
+                
+                return {
+                    'raw_response': content,
+                    'error': 'Failed to parse JSON response'
+                }
+            except Exception as e:
+                if retry == self.max_retries - 1:
+                    raise
+                print(f'[TongyiLLM] 调用失败 (重试 {retry+1}/{self.max_retries}): {e}')
+                time.sleep(self.retry_delay)
+        
+        raise Exception("分析题目失败")
+
+    def _build_analysis_prompt(self, ocr_text: str) -> str:
+        """构建分析提示词"""
+        return f"""请分析以下题目内容，返回 JSON 格式：
+
+{ocr_text}
+
+要求：
+1. 识别学科（chinese/math/english）
+2. 识别题目类型（single_choice/short_answer）
+3. 提取题目内容
+4. 提取选项（如果有）
+5. 判断正确答案
+6. 识别学生答案
+7. 判断是否错误
+8. 分析错误类型（计算错误/概念不清/审题错误/粗心大意）
+9. 提供错误原因
+10. 提供详细解析
+11. 提供推理步骤
+12. 识别年级和学期
+
+输出JSON格式：
+{{
+  "is_question": true,
+  "subject": "math",
+  "question_type": "single_choice",
+  "question_text": "题目内容",
+  "options": [{{"key": "A", "text": "选项内容"}}],
+  "correct_answer": "正确答案",
+  "student_answer": "学生答案",
+  "is_wrong": true,
+  "error_type": "计算错误",
+  "error_reason": "错误原因",
+  "explanation": "详细解析",
+  "reasoning_steps": "推理步骤",
+  "difficulty": "medium",
+  "confidence": 0.95,
+  "grade": "3",
+  "semester": "1"
+}}
+只输出JSON，不要其他内容。"""
+
+    def parse_result(self, raw_result: Dict) -> Dict:
+        """解析结果"""
+        return {
+            'is_question': raw_result.get('is_question', False),
+            'subject': raw_result.get('subject', 'unknown'),
+            'questionType': raw_result.get('question_type', 'unknown'),
+            'question': raw_result.get('question_text', ''),
+            'options': raw_result.get('options', []),
+            'correctAnswer': raw_result.get('correct_answer', ''),
+            'difficulty': raw_result.get('difficulty', 'medium'),
+            'studentAnswer': raw_result.get('student_answer', ''),
+            'studentAnswerBbox': raw_result.get('student_answer_bbox', {}),
+            'isWrong': raw_result.get('is_wrong', False),
+            'errorType': raw_result.get('error_type') or 'none',
+            'errorReason': raw_result.get('error_reason') or '',
+            'explanation': raw_result.get('explanation', ''),
+            'reasoningSteps': raw_result.get('reasoning_steps', ''),
+            'grade': raw_result.get('grade', ''),
+            'semester': raw_result.get('semester', ''),
+            'confidence': raw_result.get('confidence', 0.95),
+            'llm_source': 'tongyi',
+            'llm_raw_response': raw_result.get('raw_response', '')[:500] if 'raw_response' in raw_result else '',
+            'error': raw_result.get('error')
+        }
+
+    def generate_similar_question(self, question_data: Dict) -> Dict:
+        """生成类似题目"""
+        print(f'[TongyiLLM] 生成类似题目...')
+
+        headers = {
+            'Authorization': f'Bearer {self.api_key}',
+            'Content-Type': 'application/json'
+        }
+
+        prompt = self._build_similar_prompt(question_data)
+
+        data = {
+            'model': self.model,
+            'input': {
+                'messages': [
+                    {
+                        'role': 'user',
+                        'content': prompt
+                    }
+                ]
+            }
+        }
+
+        for retry in range(self.max_retries):
+            try:
+                response = requests.post(self.base_url, headers=headers, json=data, timeout=self.timeout)
+
+                if response.status_code == 429:
+                    wait_time = self.retry_delay * (2 ** retry)
+                    print(f'[TongyiLLM] API 速率限制 (429)，{wait_time}秒后重试...')
+                    time.sleep(wait_time)
+                    continue
+
+                if response.status_code != 200:
+                    raise Exception(f"通义千问 API error: {response.status_code}")
+
+                result = response.json()
+                content = result.get('output', {}).get('choices', [{}])[0].get('message', {}).get('content', [{}])[0].get('text', '')
+
+                json_match = re.search(r'\{[^{}]*\}', content)
+                if json_match:
+                    parsed = json.loads(json_match.group())
+                    parsed['raw_response'] = content
+                    return parsed
+
+                return {
+                    'question_text': '',
+                    'error': 'Parse failed',
+                    'raw_response': content
+                }
+
+            except Exception as e:
+                if retry == self.max_retries - 1:
+                    raise
+                print(f'[TongyiLLM] 调用失败 (重试 {retry+1}/{self.max_retries}): {e}')
+                time.sleep(self.retry_delay)
+
+        raise Exception("生成类似题目失败")
+
+    def _build_similar_prompt(self, question_data: Dict) -> str:
+        """构建提示词"""
+        question_text = question_data.get('question_text', '')
+        error_type = question_data.get('error_type', '')
+        error_reason = question_data.get('error_reason', '')
+
+        return f"""根据以下错题生成一道类似题目：
+原题：{question_text}
+错误类型：{error_type}
+错误原因：{error_reason}
+
+要求：
+1. 难度和原题相当
+2. 针对错误原因设计
+3. 数字适当变化
+4. 确保计算正确
+
+输出JSON格式：
+{{
+  "question_text": "新题目内容",
+  "correct_answer": "正确答案",
+  "explanation": "解题思路（50字以内）"
+}}
+只输出JSON。"""
+
+
+class HunyuanLLM(QuestionAnalyzer):
+    """腾讯混元 API"""
+
+    def __init__(self):
+        self.api_key = os.getenv('HUNYUAN_API_KEY', '')
+        self.base_url = "https://api.hunyuan.cloud.tencent.com/v1/chat/completions"
+        self.vision_model = os.getenv('HUNYUAN_VISION_MODEL', 'hunyuan-vision')
+        self.analysis_model = os.getenv('HUNYUAN_ANALYSIS_MODEL', 'hunyuan-pro')
+        self.timeout = int(os.getenv('API_TIMEOUT', '60'))
+        self.max_retries = 3
+        self.retry_delay = 2
+
+    def is_available(self) -> bool:
+        return bool(self.api_key)
+
+    def analyze_question(self, ocr_text: str, image_path: Optional[str] = None) -> Dict:
+        """分析题目：2次调用（识别+分析）"""
+        print(f'[HunyuanLLM] 开始分析...')
+
+        if not image_path:
+            raise Exception("需要提供图片路径")
+
+        # 第1次调用：识别图片中的文字
+        print(f'[HunyuanLLM] 第1步：识别图片文字...')
+        ocr_result = self._recognize_text(image_path)
+
+        # 第2次调用：分析题目和答案
+        print(f'[HunyuanLLM] 第2步：分析题目和答案，使用模型 {self.analysis_model}...')
+        analysis_result = self._analyze_text(ocr_result)
+
+        # 合并结果
+        result = {**analysis_result, 'ocr_text': ocr_result}
+        print(f'[HunyuanLLM] 分析完成')
+        return result
+
+    def _recognize_text(self, image_path: str) -> str:
+        """识别图片中的文字"""
+        with open(image_path, 'rb') as f:
+            image_data = f.read()
+        image_base64 = base64.b64encode(image_data).decode('utf-8')
+
+        headers = {
+            'Authorization': f'Bearer {self.api_key}',
+            'Content-Type': 'application/json'
+        }
+
+        payload = {
+            "model": self.vision_model,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{image_base64}"
+                            }
+                        },
+                        {
+                            "type": "text",
+                            "text": "识别图片中的所有文字，区分手写体和印刷体。手写体是学生答案，印刷体是题目。只输出识别到的文字，不做任何推理、补充、添加或修改。绝对不要添加'三角形'、'条'、'个'、'道'等额外词汇。"
+                        }
+                    ]
+                }
+            ]
+        }
+
+        for retry in range(self.max_retries):
+            try:
+                response = requests.post(self.base_url, json=payload,
+                                      headers=headers, timeout=self.timeout)
+                
+                if response.status_code == 429:
+                    wait_time = self.retry_delay * (2 ** retry)
+                    print(f'[HunyuanLLM] API 速率限制 (429)，{wait_time}秒后重试...')
+                    time.sleep(wait_time)
+                    continue
+                
+                if response.status_code != 200:
+                    error_msg = f"腾讯混元 API error: {response.status_code}"
+                    try:
+                        error_detail = response.json()
+                        error_msg += f" - {error_detail.get('message', 'Unknown error')}"
+                    except:
+                        pass
+                    raise Exception(error_msg)
+                
+                result = response.json()
+                content = result['choices'][0]['message']['content']
+                print(f'[HunyuanLLM] 识别到的文字: {content[:200]}')
+                return content
+            except Exception as e:
+                if retry == self.max_retries - 1:
+                    raise
+                print(f'[HunyuanLLM] 调用失败 (重试 {retry+1}/{self.max_retries}): {e}')
+                time.sleep(self.retry_delay)
+        
+        raise Exception("识别文字失败")
+
+    def _analyze_text(self, ocr_text: str) -> Dict:
+        """分析题目和答案"""
+        prompt = self._build_analysis_prompt(ocr_text)
+
+        headers = {
+            'Authorization': f'Bearer {self.api_key}',
+            'Content-Type': 'application/json'
+        }
+
+        payload = {
+            "model": self.analysis_model,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
+        }
+
+        for retry in range(self.max_retries):
+            try:
+                response = requests.post(self.base_url, json=payload,
+                                      headers=headers, timeout=self.timeout)
+                
+                if response.status_code == 429:
+                    wait_time = self.retry_delay * (2 ** retry)
+                    print(f'[HunyuanLLM] API 速率限制 (429)，{wait_time}秒后重试...')
+                    time.sleep(wait_time)
+                    continue
+                
+                if response.status_code != 200:
+                    raise Exception(f"腾讯混元 API error: {response.status_code}")
+                
+                result = response.json()
+                content = result['choices'][0]['message']['content']
+                
+                print(f'[HunyuanLLM] API 原始响应: {content[:500]}')
+                
+                content = content.strip()
+                if content.startswith('```'):
+                    content = content.split('```')[1]
+                    if content.startswith('json'):
+                        content = content[4:].strip()
+                
+                json_match = re.search(r'\{[\s\S]*\}', content, re.DOTALL)
+                if json_match:
+                    try:
+                        json_str = json_match.group()
+                        parsed = json.loads(json_str)
+                        parsed['raw_response'] = content
+                        print(f'[HunyuanLLM] 解析成功: {parsed}')
+                        return parsed
+                    except json.JSONDecodeError as e:
+                        print(f'[HunyuanLLM] JSON解析失败: {e}')
+                        print(f'[HunyuanLLM] 尝试清理 JSON 字符串...')
+                        try:
+                            json_str = self._clean_json_string(json_str)
+                            parsed = json.loads(json_str)
+                            parsed['raw_response'] = content
+                            print(f'[HunyuanLLM] 清理后解析成功')
+                            return parsed
+                        except json.JSONDecodeError as e2:
+                            print(f'[HunyuanLLM] 清理后仍然解析失败: {e2}')
+                
+                return {
+                    'question_text': '',
+                    'error': 'Parse failed',
+                    'raw_response': content
+                }
+            except Exception as e:
+                if retry == self.max_retries - 1:
+                    raise
+                print(f'[HunyuanLLM] 调用失败 (重试 {retry+1}/{self.max_retries}): {e}')
+                time.sleep(self.retry_delay)
+        
+        raise Exception("分析题目失败")
+
+    def _build_analysis_prompt(self, ocr_text: str) -> str:
+        """构建分析提示词"""
+        return f"""请分析以下题目内容，返回 JSON 格式：
+
+{ocr_text}
+
+要求：
+1. 识别学科（chinese/math/english）
+2. 识别题目类型（single_choice/short_answer）
+3. 提取题目内容
+4. 提取选项（如果有）
+5. 判断正确答案
+6. 识别学生答案
+7. 判断是否错误
+8. 分析错误类型（计算错误/概念不清/审题错误/粗心大意）
+9. 提供错误原因
+10. 提供详细解析
+11. 提供推理步骤
+12. 识别年级和学期
+
+输出JSON格式：
+{{
+  "is_question": true,
+  "subject": "math",
+  "question_type": "single_choice",
+  "question_text": "题目内容",
+  "options": [{{"key": "A", "text": "选项内容"}}],
+  "correct_answer": "正确答案",
+  "student_answer": "学生答案",
+  "is_wrong": true,
+  "error_type": "计算错误",
+  "error_reason": "错误原因",
+  "explanation": "详细解析",
+  "reasoning_steps": "推理步骤",
+  "difficulty": "medium",
+  "confidence": 0.95,
+  "grade": "3",
+  "semester": "1"
+}}
+只输出JSON，不要其他内容。"""
+
+    def _clean_json_string(self, json_str: str) -> str:
+        """清理 JSON 字符串中的无效字符"""
+        import re
+        
+        def replace_newlines_in_strings(match):
+            text = match.group(0)
+            if text.startswith('"'):
+                return text.replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
+            return text
+        
+        result = re.sub(r'"(?:[^"\\]|\\.)*"', replace_newlines_in_strings, json_str)
+        return result
+
+    def generate_similar_question(self, question_data: Dict) -> Dict:
+        """生成类似题目"""
+        print(f'[HunyuanLLM] 生成类似题目...')
+        
+        prompt = self._build_similar_prompt(question_data)
+        
+        headers = {
+            'Authorization': f'Bearer {self.api_key}',
+            'Content-Type': 'application/json'
+        }
+        
+        payload = {
+            "model": self.analysis_model,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
+        }
+        
+        for retry in range(self.max_retries):
+            try:
+                response = requests.post(self.base_url, json=payload,
+                                      headers=headers, timeout=self.timeout)
+                
+                if response.status_code == 429:
+                    wait_time = self.retry_delay * (2 ** retry)
+                    print(f'[HunyuanLLM] API 速率限制 (429)，{wait_time}秒后重试...')
+                    time.sleep(wait_time)
+                    continue
+                
+                if response.status_code != 200:
+                    raise Exception(f"腾讯混元 API error: {response.status_code}")
+                
+                result = response.json()
+                content = result['choices'][0]['message']['content']
+                
+                json_match = re.search(r'\{[^{}]*\}', content)
+                if json_match:
+                    parsed = json.loads(json_match.group())
+                    parsed['raw_response'] = content
+                    return parsed
+                
+                return {
+                    'question_text': '',
+                    'error': 'Parse failed',
+                    'raw_response': content
+                }
+            except Exception as e:
+                if retry == self.max_retries - 1:
+                    raise
+                print(f'[HunyuanLLM] 调用失败 (重试 {retry+1}/{self.max_retries}): {e}')
+                time.sleep(self.retry_delay)
+        
+        raise Exception("生成类似题目失败")
+
+    def _build_similar_prompt(self, question_data: Dict) -> str:
+        """构建提示词"""
+        question_text = question_data.get('question_text', '')
+        error_type = question_data.get('error_type', '')
+        error_reason = question_data.get('error_reason', '')
+
+        return f"""根据以下错题生成一道类似题目：
+原题：{question_text}
+错误类型：{error_type}
+错误原因：{error_reason}
+
+要求：
+1. 难度和原题相当
+2. 针对错误原因设计
+3. 数字适当变化
+4. 确保计算正确
+
+输出JSON格式：
+{{
+  "question_text": "新题目内容",
+  "correct_answer": "正确答案",
+  "explanation": "解题思路（50字以内）"
+}}
+只输出JSON。"""
+
+
 def get_available_api_llm():
     """获取可用的 API LLM 实例"""
+
+    default_llm = os.getenv('DEFAULT_LLM', 'zhipu').lower()
+    print(f'[get_available_api_llm] 默认 LLM: {default_llm}')
+
     zhipu = ZhipuLLM()
-    print(f'[get_available_api_llm] 智谱AI 可用: {zhipu.is_available()}')
-    if zhipu.is_available():
-        print(f'[get_available_api_llm] 使用智谱AI')
+    tongyi = TongyiLLM()
+    hunyuan = HunyuanLLM()
+
+    zhipu_available = zhipu.is_available()
+    tongyi_available = tongyi.is_available()
+    hunyuan_available = hunyuan.is_available()
+
+    print(f'[get_available_api_llm] 智谱AI 可用: {zhipu_available}')
+    print(f'[get_available_api_llm] 通义千问 可用: {tongyi_available}')
+    print(f'[get_available_api_llm] 腾讯混元 可用: {hunyuan_available}')
+
+    if default_llm == 'tongyi' and tongyi_available:
+        print(f'[get_available_api_llm] 使用通义千问（默认配置）')
+        return tongyi
+    elif default_llm == 'zhipu' and zhipu_available:
+        print(f'[get_available_api_llm] 使用智谱AI（默认配置）')
         return zhipu
+    elif default_llm == 'hunyuan' and hunyuan_available:
+        print(f'[get_available_api_llm] 使用腾讯混元（默认配置）')
+        return hunyuan
+
+    if zhipu_available:
+        print(f'[get_available_api_llm] 使用智谱AI（备选）')
+        return zhipu
+    if tongyi_available:
+        print(f'[get_available_api_llm] 使用通义千问（备选）')
+        return tongyi
+    if hunyuan_available:
+        print(f'[get_available_api_llm] 使用腾讯混元（备选）')
+        return hunyuan
 
     print(f'[get_available_api_llm] 没有可用的 LLM')
     return None
-
-
-# 兼容性：保留旧的方法名
-class TongyiLLM(ZhipuLLM):
-    """兼容性类，继承自 ZhipuLLM"""
-    pass

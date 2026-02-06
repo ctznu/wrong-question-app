@@ -16,6 +16,8 @@ import json
 from typing import Dict
 from dotenv import load_dotenv
 
+from analyzers.factory import AnalyzerFactory
+
 # 加载环境变量
 load_dotenv()
 
@@ -674,14 +676,13 @@ def intelligent_analyze():
             'error': None
         }
 
-        print('[intelligent_analyze] 尝试使用智谱AI...')
+        print('[intelligent_analyze] 尝试使用可用 API LLM...')
         api_llm = get_available_api_llm()
         if api_llm:
             try:
                 vision_model = getattr(api_llm, 'vision_model', 'unknown')
                 analysis_model = getattr(api_llm, 'analysis_model', 'unknown')
                 print(f'[intelligent_analyze] 开始调用 {vision_model}...')
-                # 折中方案：调用 analyze_question（2次调用：识别+分析）
                 llm_result = api_llm.analyze_question('', saved_path)
                 result['llm_analysis'] = llm_result
                 result['llm_source'] = f'{vision_model} + {analysis_model}'
@@ -693,18 +694,17 @@ def intelligent_analyze():
                 print(f'[intelligent_analyze] {vision_model} + {analysis_model} 失败: {e}')
                 print(f'[intelligent_analyze] 错误详情:\n{tb}')
                 result['error'] = f'API LLM failed: {str(e)}'
-
-        # 如果 LLM 失败，返回错误信息
-        if not result['llm_analysis']:
+        else:
             result['llm_analysis'] = {
                 'is_question': None,
                 'error': 'No cloud LLM available',
-                'message': '请配置智谱AI API密钥以启用智能分析'
+                'message': '请配置智谱AI或通义千问 API密钥以启用智能分析'
             }
             result['llm_source'] = 'none'
 
         # 5. 格式化返回结果（将 LLM 分析结果转换为前端需要的格式）
         llm_analysis = result['llm_analysis']
+        print(f'[intelligent_analyze] llm_analysis 内容: {llm_analysis}')
         if llm_analysis:
             formatted_result = {
                 'is_question': llm_analysis.get('is_question', False),
@@ -1053,6 +1053,30 @@ def infer_subject_from_text(text: str) -> str:
         return 'english'
 
     return 'unknown'
+
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    if 'file' not in request.files:
+        return jsonify({'error': 'no file provided'}), 400
+
+    f = request.files['file']
+    analyzer_type = request.form.get('model', 'zhipu')
+
+    try:
+        debug_dir = os.path.join(os.path.dirname(__file__), 'debug_uploads')
+        os.makedirs(debug_dir, exist_ok=True)
+        saved_path = os.path.join(debug_dir, f.filename)
+        f.stream.seek(0)
+        with open(saved_path, 'wb') as out_f:
+            out_f.write(f.stream.read())
+
+        analyzer = AnalyzerFactory.get_analyzer(analyzer_type)
+        result = analyzer.analyze_question('', saved_path)
+
+        return jsonify(result)
+    except Exception as e:
+        tb = traceback.format_exc()
+        return jsonify({'error': str(e), 'traceback': tb}), 500
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=True)

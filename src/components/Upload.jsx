@@ -60,6 +60,13 @@ const errorTypes = {
   'unknown': '未知'
 };
 
+const llmModels = [
+  { value: 'zhipu', label: '智谱AI', color: '#4D6BFE' },
+  { value: 'tongyi', label: '通义千问', color: '#FF6B6B' },
+  { value: 'hunyuan', label: '腾讯混元', color: '#0052D9' },
+  { value: 'ollama', label: '本地Ollama', color: '#10B981' }
+];
+
 function Upload({ addQuestion }) {
   const { user, updateUser } = useAuth();
   const [file, setFile] = useState(null);
@@ -78,6 +85,7 @@ function Upload({ addQuestion }) {
   const [reason, setReason] = useState('');
   const [tags, setTags] = useState([]);
   const [focusedField, setFocusedField] = useState('');
+  const [selectedModel, setSelectedModel] = useState('zhipu');
   const navigate = useNavigate();
 
   const getCurrentSemester = () => {
@@ -151,9 +159,17 @@ function Upload({ addQuestion }) {
   };
 
   const handleQwenOCR = async () => {
+    await handleOCRWithModel('tongyi');
+  };
+
+  const handleDeepSeekOCR = async () => {
+    await handleOCRWithModel('ollama');
+  };
+
+  const handleOCRWithModel = async (model) => {
     if (!file) return;
     setLoading(true);
-    setLoadingType('qwen');
+    setLoadingType(model);
     setOcrError('');
     setRecognizedText('');
     setSubject('');
@@ -163,20 +179,17 @@ function Upload({ addQuestion }) {
     setReason('');
     setTags([]);
     setParsedResult(null);
+    
     try {
       const formData = new FormData();
       formData.append('file', file);
-
-      const resp = await fetch('http://127.0.0.1:5000/intelligent_analyze', {
+      formData.append('model', model);
+      
+      const resp = await fetch('http://127.0.0.1:5000/analyze', {
         method: 'POST',
         body: formData,
       });
       const data = await resp.json();
-      console.log('=== 千问识别完整响应数据 ===');
-      console.log('完整数据:', JSON.stringify(data, null, 2));
-      console.log('studentAnswer字段值:', data.studentAnswer);
-      console.log('studentAnswer类型:', typeof data.studentAnswer);
-      console.log('=== 结束 ===');
       
       if (!resp.ok) {
         setOcrError(data.error || '服务返回错误');
@@ -184,9 +197,9 @@ function Upload({ addQuestion }) {
       } else {
         setRecognizedText(data.ocr_text || '');
         setParsedResult(data);
-
+        
         console.log('识别结果:', data);
-        console.log('视觉识别来源:', data.vision_source);
+        console.log('视觉识别来源:', data.vision_source || data.llm_source);
         console.log('推理分析来源:', data.reasoning_source);
         console.log('OCR返回的grade:', data.grade);
         console.log('OCR返回的semester:', data.semester);
@@ -194,117 +207,17 @@ function Upload({ addQuestion }) {
         console.log('OCR返回的semester类型:', typeof data.semester);
         
         // 自动填充表单
-        // 学科映射
         const subjectMap = { 'math': 'math', 'chinese': 'chinese', 'english': 'english' };
         if (data.subject && subjectMap[data.subject]) {
           setSubject(subjectMap[data.subject]);
         }
-
-        // 年级和学期（优先使用推理分析的）
-        if (data.grade) {
-          console.log('推理分析的年级:', data.grade);
-        }
-        if (data.semester) {
-          console.log('推理分析的学期:', data.semester);
-          // 合并年级和学期为 "3-上" 格式
-          const combinedSemester = data.grade ? `${data.grade}-${data.semester}` : data.semester;
-          console.log('合并后的学期:', combinedSemester);
-          console.log('可用的学期选项:', semesters);
-          setSemester(combinedSemester);
-        } else if (user?.currentGrade) {
-          // 如果推理分析没有识别，使用前端计算的
-          const calculatedSemester = getCurrentSemester();
-          console.log('使用前端计算的学期:', calculatedSemester);
-          setSemester(calculatedSemester);
-        }
-
-        // 题目内容
-        if (data.question) setQuestion(data.question);
-
-        // 正确答案
-        if (data.correctAnswer) setCorrectAnswer(data.correctAnswer);
-
-        // 学生答案
-        console.log('准备设置错误答案，原始值:', data.studentAnswer);
-        if (data.studentAnswer) {
-          console.log('设置错误答案为:', data.studentAnswer);
-          setWrongAnswer(data.studentAnswer);
-        } else {
-          console.log('studentAnswer为空，不设置错误答案');
-        }
-
-        // 错误原因
-        if (data.errorReason) setReason(data.errorReason);
-
-        // 错误类型标签
-        if (data.errorType && data.errorType !== 'none') {
-          const errorTypeLabel = errorTypes[data.errorType] || '其他';
-          console.log('设置错误类型标签:', errorTypeLabel);
-          setTags([errorTypeLabel]);
-        } else {
-          console.log('errorType为空或none，不设置标签');
-        }
-      }
-    } catch (err) {
-      console.error('OCR 请求失败:', err);
-      setOcrError(err.message || String(err));
-      setRecognizedText('识别失败：网络或服务未启动');
-    } finally {
-      setLoading(false);
-      setLoadingType(null);
-    }
-  };
-
-  const handleDeepSeekOCR = async () => {
-    if (!file) return;
-    setLoading(true);
-    setLoadingType('deepseek');
-    setOcrError('');
-    setRecognizedText('');
-    setSubject('');
-    setQuestion('');
-    setCorrectAnswer('');
-    setWrongAnswer('');
-    setReason('');
-    setTags([]);
-    setParsedResult(null);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const resp = await fetch('http://127.0.0.1:5000/ollama_analyze', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await resp.json();
-      if (!resp.ok) {
-        setOcrError(data.error || '服务返回错误');
-        setRecognizedText('识别失败，请查看错误信息');
-      } else {
-        setRecognizedText(data.ocr_text || '');
-        setParsedResult(data);
-
-        console.log('识别结果:', data);
-        console.log('LLM 来源:', data.llm_source);
-        console.log('OCR返回的grade:', data.grade);
-        console.log('OCR返回的semester:', data.semester);
-        console.log('OCR返回的grade类型:', typeof data.grade);
-        console.log('OCR返回的semester类型:', typeof data.semester);
-
-        // 自动填充表单
-        // 学科映射
-        const subjectMap = { 'math': 'math', 'chinese': 'chinese', 'english': 'english' };
-        if (data.subject && subjectMap[data.subject]) {
-          setSubject(subjectMap[data.subject]);
-        }
-
+        
         // 年级和学期
         if (data.grade) {
           console.log('识别的年级:', data.grade);
         }
         if (data.semester) {
           console.log('识别的学期:', data.semester);
-          // 合并年级和学期为 "3-上" 格式
           const combinedSemester = data.grade ? `${data.grade}-${data.semester}` : data.semester;
           console.log('合并后的学期:', combinedSemester);
           console.log('可用的学期选项:', semesters);
@@ -314,19 +227,24 @@ function Upload({ addQuestion }) {
           console.log('使用前端计算的学期:', calculatedSemester);
           setSemester(calculatedSemester);
         }
-
+        
         // 题目内容
         if (data.question) setQuestion(data.question);
-
+        
         // 正确答案
         if (data.correctAnswer) setCorrectAnswer(data.correctAnswer);
-
+        
         // 学生答案
-        if (data.studentAnswer) setWrongAnswer(data.studentAnswer);
-
+        if (data.studentAnswer) {
+          console.log('设置错误答案为:', data.studentAnswer);
+          setWrongAnswer(data.studentAnswer);
+        } else {
+          console.log('studentAnswer为空，不设置错误答案');
+        }
+        
         // 错误原因
         if (data.errorReason) setReason(data.errorReason);
-
+        
         // 错误类型标签
         if (data.errorType && data.errorType !== 'none') {
           const errorTypeLabel = errorTypes[data.errorType] || '其他';
@@ -337,9 +255,9 @@ function Upload({ addQuestion }) {
         }
       }
     } catch (err) {
-      console.error('DeepSeek OCR 请求失败:', err);
+      console.error(`${model} OCR 请求失败:`, err);
       setOcrError(err.message || String(err));
-      setRecognizedText('识别失败：请确保 Ollama 服务已启动');
+      setRecognizedText('识别失败：网络或服务未启动');
     } finally {
       setLoading(false);
       setLoadingType(null);
@@ -421,24 +339,14 @@ function Upload({ addQuestion }) {
               </Box>
             )}
             {preview && (
-              <Box sx={{ mt: 2, textAlign: 'center', display: 'flex', gap: 2, justifyContent: 'center' }}>
+              <Box sx={{ mt: 2, textAlign: 'center' }}>
                 <Button
                   variant="contained"
-                  onClick={handleQwenOCR}
+                  onClick={() => handleOCRWithModel(selectedModel)}
                   disabled={loading}
-
-                  color="primary"
+                  sx={{ minWidth: 200 }}
                 >
-                  {loadingType === 'qwen' ? '识别中...' : '云识别'}
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={handleDeepSeekOCR}
-                  disabled={loading}
-
-                  sx={{ backgroundColor: '#4D6BFE', '&:hover': { backgroundColor: '#3D5BEE' }, '&:disabled': { backgroundColor: '#4D6BFE', opacity: 0.5 } }}
-                >
-                  {loadingType === 'deepseek' ? '识别中...' : '本地识别'}
+                  {loading ? '识别中...' : `使用 ${llmModels.find(m => m.value === selectedModel)?.label || 'AI'} 识别`}
                 </Button>
               </Box>
             )}
@@ -479,6 +387,24 @@ function Upload({ addQuestion }) {
 
               {/* 学科和学期一起占一行 */}
               <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start' }}>
+                <FormControl>
+                  <InputLabel sx={{ bgcolor: 'white', px: 0.5 }}>AI模型 *</InputLabel>
+                  <Select
+                    value={selectedModel}
+                    label="AI模型"
+                    onChange={(e) => setSelectedModel(e.target.value)}
+                    sx={{ minWidth: 200 }}
+                  >
+                    {llmModels.map(m => (
+                      <MenuItem key={m.value} value={m.value}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: m.color }} />
+                          {m.label}
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
                 <FormControl>
                   <InputLabel sx={{ bgcolor: 'white', px: 0.5 }}>学科 *</InputLabel>
                   <Select
