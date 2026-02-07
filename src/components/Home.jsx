@@ -3,30 +3,13 @@ import { Container, Typography, Button, Card, CardContent, CardActions, Chip, Se
 import { Link } from 'react-router-dom';
 import { Search, Filter, LayoutGrid, LayoutList } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { getGradeLabel, formatSemester, getSemesterOptions } from '../utils/formatters';
 
 const subjects = [
   { value: 'chinese', label: '语文', color: 'chinese-chip' },
   { value: 'math', label: '数学', color: 'math-chip' },
   { value: 'english', label: '英语', color: 'english-chip' }
 ];
-
-const getGradeLabel = (grade) => {
-  const gradeMap = {
-    '1': '一年级',
-    '2': '二年级',
-    '3': '三年级',
-    '4': '四年级',
-    '5': '五年级',
-    '6': '六年级'
-  };
-  return gradeMap[grade] || grade;
-};
-
-const formatSemester = (semester) => {
-  if (!semester) return semester;
-  const [grade, semesterType] = semester.split('-');
-  return `${getGradeLabel(grade)}-${semesterType}`;
-};
 
 function Home({ questions, deleteQuestion }) {
   const { user } = useAuth();
@@ -41,24 +24,7 @@ function Home({ questions, deleteQuestion }) {
     localStorage.setItem('viewMode', mode);
   };
 
-  const getSemesterOptions = () => {
-    const currentGrade = user?.currentGrade;
-    if (!currentGrade) return [];
-    
-    const options = [];
-    
-    for (let i = 0; i < 2; i++) {
-      const grade = parseInt(currentGrade) - i;
-      if (grade >= 1) {
-        options.push(`${grade}-上`);
-        options.push(`${grade}-下`);
-      }
-    }
-    
-    return options;
-  };
-
-  const semesters = getSemesterOptions();
+  const semesters = getSemesterOptions(user?.currentGrade);
 
   const filteredQuestions = questions.filter(q => {
     return (!selectedSubject || q.subject === selectedSubject) &&

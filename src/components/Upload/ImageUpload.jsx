@@ -2,12 +2,20 @@ import React from 'react';
 import { Box, Typography, Button, Paper, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { Upload as UploadIcon } from 'lucide-react';
 import { LLM_MODELS } from '../../utils/constants';
+import OcrOverlay from '../OcrOverlay';
 
-function ImageUpload({ file, preview, onFileChange, onRemove, selectedModel, onModelChange, onOCR, loading }) {
+function ImageUpload({ file, preview, onFileChange, onRemove, selectedModel, onModelChange, onOCR, loading, ocrResult }) {
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       onFileChange(selectedFile);
+    }
+  };
+
+  const handleSelectOcrText = (selected) => {
+    if (selected && selected.text) {
+      // This would need to be handled by the parent component
+      console.log('Selected OCR text:', selected.text);
     }
   };
 
@@ -19,13 +27,22 @@ function ImageUpload({ file, preview, onFileChange, onRemove, selectedModel, onM
       <Box className="upload-area">
         {preview ? (
           <Box className="preview-container">
-            <img src={preview} alt="预览" className="preview-image" />
+            {ocrResult ? (
+              <OcrOverlay
+                imageSrc={preview}
+                words={ocrResult.words || []}
+                blocks={ocrResult.blocks || []}
+                onSelect={handleSelectOcrText}
+              />
+            ) : (
+              <img src={preview} alt="预览" className="preview-image" />
+            )}
             <Button
               variant="outlined"
               color="error"
               size="small"
               onClick={onRemove}
-              sx={{ position: 'absolute', top: 8, right: 8 }}
+              sx={{ position: 'absolute', top: 0, right: 0 }}
             >
               移除
             </Button>
