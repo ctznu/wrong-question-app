@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Paper, Box, FormControl, InputLabel, Select, MenuItem, Button, Alert, TextField } from '@mui/material';
-import { Settings as SettingsIcon, Save } from 'lucide-react';
+import { Container, Typography, Paper, Box, FormControl, InputLabel, Select, MenuItem, Button, Alert, TextField, Divider } from '@mui/material';
+import { Settings as SettingsIcon, Save, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const grades = [
@@ -20,6 +20,13 @@ function Settings() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // 密码修改状态
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordSaved, setPasswordSaved] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -36,7 +43,10 @@ function Settings() {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch('http://localhost:5001/api/auth/update', {
+      // 使用环境变量或默认值作为 API 基础 URL
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
+      
+      const response = await fetch(`${apiBaseUrl}/auth/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -57,6 +67,51 @@ function Settings() {
     } catch (err) {
       console.error('保存设置失败:', err);
       setError(`保存设置失败: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setLoading(true);
+    setPasswordError('');
+    
+    // 验证新密码和确认密码是否一致
+    if (newPassword !== confirmPassword) {
+      setPasswordError('新密码和确认密码不一致');
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      
+      // 使用环境变量或默认值作为 API 基础 URL
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
+      
+      const response = await fetch(`${apiBaseUrl}/auth/change-password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        },
+        body: JSON.stringify({ oldPassword, newPassword })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.msg || '修改密码失败');
+      }
+
+      // 密码修改成功，清空表单
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setPasswordSaved(true);
+      setTimeout(() => setPasswordSaved(false), 3000);
+    } catch (err) {
+      console.error('修改密码失败:', err);
+      setPasswordError(`修改密码失败: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -135,6 +190,68 @@ function Settings() {
             {saved && (
               <Alert severity="success" sx={{ mt: 2 }}>
                 设置已保存！用户名：{username || '未设置'}，学生姓名：{studentName || '未设置'}，当前年级：{getGradeLabel(currentGrade)}
+              </Alert>
+            )}
+          </Box>
+
+          <Divider sx={{ my: 4 }} />
+
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+              <Lock size={20} style={{ marginRight: '8px' }} />
+              修改密码
+            </Typography>
+
+            <TextField
+              fullWidth
+              label="旧密码"
+              type="password"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+              sx={{ mt: 2 }}
+            />
+
+            <TextField
+              fullWidth
+              label="新密码"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              helperText="新密码长度至少为6个字符"
+              sx={{ mt: 2 }}
+            />
+
+            <TextField
+              fullWidth
+              label="确认新密码"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              helperText={confirmPassword && newPassword !== confirmPassword ? "新密码和确认密码不一致" : ""}
+              error={confirmPassword && newPassword !== confirmPassword}
+              sx={{ mt: 2 }}
+            />
+
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                variant="contained"
+                onClick={handleChangePassword}
+                disabled={!oldPassword || !newPassword || !confirmPassword || newPassword !== confirmPassword || loading}
+                startIcon={<Save size={16} />}
+              >
+                {loading ? '修改中...' : '修改密码'}
+              </Button>
+            </Box>
+
+            {passwordError && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {passwordError}
+              </Alert>
+            )}
+
+            {passwordSaved && (
+              <Alert severity="success" sx={{ mt: 2 }}>
+                密码修改成功！
               </Alert>
             )}
           </Box>

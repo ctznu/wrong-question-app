@@ -18,10 +18,72 @@ load_dotenv()
 from api_llm_client import get_available_api_llm
 
 app = Flask(__name__)
-CORS(app)
+
+# 配置 CORS
+if os.getenv('FLASK_ENV') == 'production':
+    # 生产环境：只允许特定域名
+    allowed_origins = os.getenv('ALLOWED_ORIGINS', '').split(',')
+    if allowed_origins and allowed_origins[0]:
+        CORS(app, origins=allowed_origins)
+    else:
+        # 如果没有配置允许的域名，默认允许所有
+        CORS(app)
+else:
+    # 开发环境：允许所有
+    CORS(app)
 
 # Backend API endpoint
 BACKEND_API_URL = os.getenv('BACKEND_API_URL', 'http://localhost:5001/api')
+
+
+def cleanup_uploads():
+    """
+    清理上传的临时文件
+    定期清理 debug_uploads 目录中超过 24 小时的文件
+    """
+    import os
+    import time
+    
+    debug_dir = os.path.join(os.path.dirname(__file__), 'debug_uploads')
+    if not os.path.exists(debug_dir):
+        return
+    
+    current_time = time.time()
+    max_age = 24 * 60 * 60  # 24小时
+    
+    for filename in os.listdir(debug_dir):
+        file_path = os.path.join(debug_dir, filename)
+        if os.path.isfile(file_path):
+            file_age = current_time - os.path.getmtime(file_path)
+            if file_age > max_age:
+                try:
+                    os.remove(file_path)
+                    print(f'[cleanup_uploads] 删除过期文件: {filename}')
+                except Exception as e:
+                    print(f'[cleanup_uploads] 删除文件 {filename} 失败: {e}')
+
+
+# 启动定时清理任务
+def start_cleanup_task():
+    """
+    启动定时清理任务
+    每小时执行一次清理
+    """
+    import threading
+    import time
+    
+    def cleanup_task():
+        while True:
+            cleanup_uploads()
+            time.sleep(60 * 60)  # 每小时执行一次
+    
+    # 立即执行一次清理
+    cleanup_uploads()
+    
+    # 启动定时任务
+    thread = threading.Thread(target=cleanup_task, daemon=True)
+    thread.start()
+    print('[start_cleanup_task] 启动定时清理任务')
 
 def infer_subject_from_text(text: str) -> str:
     """从文本中推断学科"""
@@ -58,6 +120,16 @@ def intelligent_analyze():
         return jsonify({'error': 'no file provided'}), 400
 
     f = request.files['file']
+    
+    # 检查文件类型
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+    if '.' not in f.filename or f.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+        return jsonify({'error': '只允许上传图片文件 (PNG, JPG, JPEG, GIF)'}), 400
+    
+    # 检查文件大小
+    max_size = int(os.getenv('MAX_IMAGE_SIZE', 10485760))  # 默认10MB
+    if f.content_length > max_size:
+        return jsonify({'error': f'文件大小超过限制 (最大 {max_size/1024/1024:.1f}MB)'}), 400
 
     try:
         # 1. 保存文件
@@ -68,9 +140,9 @@ def intelligent_analyze():
         with open(saved_path, 'wb') as out_f:
             out_f.write(f.stream.read())
 
-        # 直接使用智谱AI视觉模型进行智能分析（不需要 Tesseract OCR）
+        # 直接使用AI视觉模型进行智能分析
         result = {
-            'ocr_result': None,  # 不再使用 Tesseract
+            'ocr_result': None,
             'llm_analysis': None,
             'llm_source': None,
             'error': None
@@ -155,7 +227,12 @@ def intelligent_analyze():
 
     except Exception as e:
         tb = traceback.format_exc()
-        return jsonify({'error': str(e), 'traceback': tb}), 500
+        print(f'[intelligent_analyze] 错误: {e}')
+        print(f'[intelligent_analyze] 错误详情:\n{tb}')
+        if os.getenv('FLASK_ENV') == 'production':
+            return jsonify({'error': '服务器内部错误'}), 500
+        else:
+            return jsonify({'error': str(e), 'traceback': tb}), 500
 
 
 @app.route('/generate_similar_question', methods=['POST'])
@@ -186,7 +263,7 @@ def generate_similar_question():
         if not api_llm:
             return jsonify({
                 'error': 'No cloud LLM available',
-                'message': '请配置云LLM API密钥（智谱AI）以启用智能分析'
+                'message': '请配置云LLM API密钥以启用智能分析'
             }), 400
 
         similar_question = api_llm.generate_similar_question(question_data)
@@ -202,7 +279,10 @@ def generate_similar_question():
         tb = traceback.format_exc()
         print(f'[generate_similar_question] 错误: {e}')
         print(f'[generate_similar_question] 错误详情:\n{tb}')
-        return jsonify({'error': str(e), 'traceback': tb}), 500
+        if os.getenv('FLASK_ENV') == 'production':
+            return jsonify({'error': '服务器内部错误'}), 500
+        else:
+            return jsonify({'error': str(e), 'traceback': tb}), 500
 
 
 @app.route('/generate_similar_questions', methods=['POST'])
@@ -237,7 +317,7 @@ def generate_similar_questions():
         if not api_llm:
             return jsonify({
                 'error': 'No cloud LLM available',
-                'message': '请配置云LLM API密钥（智谱AI）以启用智能分析'
+                'message': '请配置云LLM API密钥以启用智能分析'
             }), 400
 
         similar_questions = []
@@ -257,7 +337,10 @@ def generate_similar_questions():
         tb = traceback.format_exc()
         print(f'[generate_similar_questions] 错误: {e}')
         print(f'[generate_similar_questions] 错误详情:\n{tb}')
-        return jsonify({'error': str(e), 'traceback': tb}), 500
+        if os.getenv('FLASK_ENV') == 'production':
+            return jsonify({'error': '服务器内部错误'}), 500
+        else:
+            return jsonify({'error': str(e), 'traceback': tb}), 500
 
 
 @app.route('/analyze', methods=['POST'])
@@ -267,6 +350,16 @@ def analyze():
 
     f = request.files['file']
     analyzer_type = request.form.get('model', 'zhipu')
+    
+    # 检查文件类型
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+    if '.' not in f.filename or f.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+        return jsonify({'error': '只允许上传图片文件 (PNG, JPG, JPEG, GIF)'}), 400
+    
+    # 检查文件大小
+    max_size = int(os.getenv('MAX_IMAGE_SIZE', 10485760))  # 默认10MB
+    if f.content_length > max_size:
+        return jsonify({'error': f'文件大小超过限制 (最大 {max_size/1024/1024:.1f}MB)'}), 400
 
     try:
         debug_dir = os.path.join(os.path.dirname(__file__), 'debug_uploads')
@@ -282,8 +375,17 @@ def analyze():
         return jsonify(result)
     except Exception as e:
         tb = traceback.format_exc()
-        return jsonify({'error': str(e), 'traceback': tb}), 500
+        print(f'[analyze] 错误: {e}')
+        print(f'[analyze] 错误详情:\n{tb}')
+        if os.getenv('FLASK_ENV') == 'production':
+            return jsonify({'error': '服务器内部错误'}), 500
+        else:
+            return jsonify({'error': str(e), 'traceback': tb}), 500
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    # 启动定时清理任务
+    start_cleanup_task()
+    
+    debug = os.getenv('FLASK_ENV') != 'production'
+    app.run(host='127.0.0.1', port=5000, debug=debug)

@@ -7,7 +7,31 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// 配置 CORS
+if (process.env.NODE_ENV === 'production') {
+  // 生产环境：只允许特定域名
+  const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
+  if (allowedOrigins.length > 0) {
+    const corsOptions = {
+      origin: function (origin, callback) {
+        if (allowedOrigins.includes(origin) || !origin) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
+      optionsSuccessStatus: 200
+    };
+    app.use(cors(corsOptions));
+  } else {
+    // 如果没有配置允许的域名，默认允许所有
+    app.use(cors());
+  }
+} else {
+  // 开发环境：允许所有
+  app.use(cors());
+}
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 

@@ -32,7 +32,10 @@ export const AuthProvider = ({ children }) => {
       if (storedToken) {
         setToken(storedToken);
         try {
-          const response = await fetch('http://localhost:5001/api/auth/me', {
+          // 使用环境变量或默认值作为 API 基础 URL
+          const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
+          
+          const response = await fetch(`${apiBaseUrl}/auth/me`, {
             headers: {
               'x-auth-token': storedToken
             }

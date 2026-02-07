@@ -21,13 +21,7 @@ const formatSemester = (semester) => {
   return `${getGradeLabel(grade)}-${semesterType}`;
 };
 
-const errorTypes = [
-  '计算错误',
-  '概念不清',
-  '审题错误',
-  '粗心大意',
-  '其他'
-];
+
 
 function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
   const { id } = useParams();
@@ -40,7 +34,6 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
   const [similarQuestion, setSimilarQuestion] = useState(null);
   const [similarQuestions, setSimilarQuestions] = useState([]);
   const [generatedQuestions, setGeneratedQuestions] = useState([]);
-  const [loadingGenerated, setLoadingGenerated] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [deleteDialog, setDeleteDialog] = useState({ open: false, question: null, index: null });
   const [generateCount, setGenerateCount] = useState(1);
@@ -62,6 +55,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
     }
   }, [id, questions]);
 
+  // 加载生成的类似题目
   const loadGeneratedQuestions = async () => {
     if (question?._id || question?.id) {
       try {
@@ -90,7 +84,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
 
   useEffect(() => {
     loadGeneratedQuestions();
-  }, [question]);
+  }, [question, loadGeneratedQuestions]);
 
   const handleSave = async () => {
     try {

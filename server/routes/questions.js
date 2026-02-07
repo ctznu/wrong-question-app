@@ -28,16 +28,12 @@ router.get('/', auth, async (req, res) => {
   try {
     const { subject, semester, tag, page = 1, limit = 10 } = req.query;
     
-    console.log('[GET /questions] 请求用户ID:', req.user.id);
-    console.log('[GET /questions] 过滤条件:', { subject, semester, tag });
-    
     // Build filter object
     const filter = { userId: req.user.id };
     if (subject) filter.subject = subject;
     if (semester) filter.semester = semester;
     if (tag) filter.tags = { $in: [tag] };
     
-    console.log('[GET /questions] 最终查询条件:', filter);
     
     const questions = await Question.find(filter)
       .sort({ createdAt: -1 })
@@ -45,9 +41,6 @@ router.get('/', auth, async (req, res) => {
       .skip((page - 1) * limit);
     
     const total = await Question.countDocuments(filter);
-    
-    console.log('[GET /questions] 查询结果数量:', questions.length);
-    console.log('[GET /questions] 总记录数:', total);
     
     res.json({
       questions,

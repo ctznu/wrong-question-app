@@ -15,7 +15,6 @@ function ImageUpload({ file, preview, onFileChange, onRemove, selectedModel, onM
   const handleSelectOcrText = (selected) => {
     if (selected && selected.text) {
       // This would need to be handled by the parent component
-      console.log('Selected OCR text:', selected.text);
     }
   };
 

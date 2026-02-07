@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Typography, Button, Box, Alert, Paper, Snackbar } from '@mui/material';
+import { Container, Typography, Button, Box, Alert, Snackbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Save, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -24,7 +24,6 @@ function Upload({ addQuestion }) {
   React.useEffect(() => {
     if (user?.currentGrade && !formData.semester) {
       const calculatedSemester = getCurrentSemester(user.currentGrade);
-      console.log('初始化时计算的学期:', calculatedSemester);
       setFormData(prev => ({ ...prev, semester: calculatedSemester }));
     }
   }, [user?.currentGrade, formData.semester, setFormData]);
@@ -113,13 +112,13 @@ function Upload({ addQuestion }) {
       } else {
         setOcrResult(data);
         
-        console.log('识别结果:', data);
-        console.log('视觉识别来源:', data.vision_source || data.llm_source);
-        console.log('推理分析来源:', data.reasoning_source);
-        console.log('OCR返回的grade:', data.grade);
-        console.log('OCR返回的semester:', data.semester);
-        console.log('OCR返回的grade类型:', typeof data.grade);
-        console.log('OCR返回的semester类型:', typeof data.semester);
+
+
+
+
+
+
+
         
         const subjectMap = { 'math': 'math', 'chinese': 'chinese', 'english': 'english' };
         if (data.subject && subjectMap[data.subject]) {
@@ -127,26 +126,23 @@ function Upload({ addQuestion }) {
         }
         
         if (data.grade) {
-          console.log('识别的年级:', data.grade);
         }
         if (data.semester) {
           const combinedSemester = data.grade ? `${data.grade}-${data.semester}` : data.semester;
-          console.log('合并后的学期:', combinedSemester);
-          console.log('可用的学期选项:', getSemesterOptions(user?.currentGrade));
+
+
           setFormData(prev => ({ ...prev, semester: combinedSemester }));
         } else if (user?.currentGrade) {
           const calculatedSemester = getCurrentSemester(user.currentGrade);
-          console.log('使用前端计算的学期:', calculatedSemester);
+
           setFormData(prev => ({ ...prev, semester: calculatedSemester }));
         }
         
         if (data.question) setFormData(prev => ({ ...prev, question: data.question }));
         if (data.correctAnswer) setFormData(prev => ({ ...prev, correctAnswer: data.correctAnswer }));
         if (data.studentAnswer) {
-          console.log('设置错误答案为:', data.studentAnswer);
           setFormData(prev => ({ ...prev, wrongAnswer: data.studentAnswer }));
         } else {
-          console.log('studentAnswer为空，不设置错误答案');
         }
         if (data.errorReason) setFormData(prev => ({ ...prev, reason: data.errorReason }));
         if (data.errorType && data.errorType !== 'none') {
@@ -159,14 +155,11 @@ function Upload({ addQuestion }) {
             'none': '无错误'
           };
           const errorTypeLabel = errorTypeMap[data.errorType] || data.errorType;
-          console.log('设置错误类型标签:', errorTypeLabel);
           setFormData(prev => ({ ...prev, tags: [errorTypeLabel] }));
         } else {
-          console.log('errorType为空或none，不设置标签');
         }
       }
     } catch (err) {
-      console.error('OCR 请求失败:', err);
       setOcrError(err.message || '识别失败，请重试');
       setOcrResult(null);
     } finally {
@@ -183,7 +176,10 @@ function Upload({ addQuestion }) {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5001/api/questions', {
+      // 使用环境变量或默认值作为 API 基础 URL
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
+      
+      const response = await fetch(`${apiBaseUrl}/questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -205,7 +201,6 @@ function Upload({ addQuestion }) {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('保存成功:', result);
         setSnackbar({ open: true, message: '错题保存成功！', severity: 'success' });
         handleRemoveFile();
         if (addQuestion) {
@@ -214,11 +209,9 @@ function Upload({ addQuestion }) {
         navigate('/');
       } else {
         const errorData = await response.json();
-        console.error('保存失败:', errorData);
         setSnackbar({ open: true, message: `保存失败: ${errorData.error || '未知错误'}`, severity: 'error' });
       }
     } catch (err) {
-      console.error('保存请求失败:', err);
       setSnackbar({ open: true, message: `保存失败: ${err.message}`, severity: 'error' });
     }
   };

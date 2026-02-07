@@ -1,6 +1,12 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'mySecretKey';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+// 检查 JWT_SECRET 是否设置
+if (!JWT_SECRET) {
+  console.error('ERROR: JWT_SECRET environment variable is not set');
+  process.exit(1);
+}
 
 // Middleware to authenticate token
 function auth(req, res, next) {

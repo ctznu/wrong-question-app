@@ -2,8 +2,8 @@ const Question = require('../models/Question');
 
 const getStatistics = async (req, res) => {
   try {
-    const questions = await Question.findAll({
-      attributes: ['id', 'subject', 'questionType', 'grade', 'semester', 'createdAt']
+    const questions = await Question.find({}, {
+      subject: 1, questionType: 1, grade: 1, semester: 1, createdAt: 1
     });
 
     const totalQuestions = questions.length;
@@ -57,9 +57,8 @@ const getStatistics = async (req, res) => {
 
 const getSubjectDistribution = async (req, res) => {
   try {
-    const Question = require('../models/Question');
-    const questions = await Question.findAll({
-      attributes: ['id', 'subject', 'questionType', 'grade', 'semester', 'createdAt']
+    const questions = await Question.find({}, {
+      subject: 1, questionType: 1, grade: 1, semester: 1, createdAt: 1
     });
 
     const distribution = questions.reduce((acc, q) => {
@@ -78,9 +77,8 @@ const getSubjectDistribution = async (req, res) => {
 
 const getSemesterDistribution = async (req, res) => {
   try {
-    const Question = require('../models/Question');
-    const questions = await Question.findAll({
-      attributes: ['id', 'subject', 'questionType', 'grade', 'semester', 'createdAt']
+    const questions = await Question.find({}, {
+      subject: 1, questionType: 1, grade: 1, semester: 1, createdAt: 1
     });
 
     const distribution = questions.reduce((acc, q) => {
@@ -99,9 +97,8 @@ const getSemesterDistribution = async (req, res) => {
 
 const getTagDistribution = async (req, res) => {
   try {
-    const Question = require('../models/Question');
-    const questions = await Question.findAll({
-      attributes: ['id', 'subject', 'questionType', 'grade', 'semester', 'createdAt']
+    const questions = await Question.find({}, {
+      subject: 1, questionType: 1, grade: 1, semester: 1, createdAt: 1, tags: 1
     });
 
     const distribution = {};
@@ -124,9 +121,8 @@ const getTagDistribution = async (req, res) => {
 
 const getMonthlyTrend = async (req, res) => {
   try {
-    const Question = require('../models/Question');
-    const questions = await Question.findAll({
-      attributes: ['id', 'subject', 'questionType', 'grade', 'semester', 'createdAt']
+    const questions = await Question.find({}, {
+      subject: 1, questionType: 1, grade: 1, semester: 1, createdAt: 1
     });
 
     const monthlyTrend = [];
