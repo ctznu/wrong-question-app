@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { Save, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUpload } from '../../contexts/UploadContext';
-import { ERROR_TYPES } from '../../utils/constants';
-import { getSemesterOptions } from '../../utils/formatters';
+import { ERROR_TYPES, SUBJECTS, QUESTION_TYPES } from '../../utils/constants';
+import { getSemesterOptions, getCurrentSemester } from '../../utils/formatters';
 import ImageUpload from './ImageUpload';
 import QuestionForm from './QuestionForm';
 
@@ -20,19 +20,14 @@ function Upload({ addQuestion }) {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const navigate = useNavigate();
 
-  const getCurrentSemester = () => {
-    const currentGrade = user?.currentGrade;
-    if (!currentGrade) return '';
-    
-    const now = new Date();
-    const month = now.getMonth() + 1;
-    
-    if (month >= 9 || month <= 2) {
-      return `${currentGrade}-上`;
-    } else {
-      return `${currentGrade}-下`;
+  // 初始化时自动计算学期
+  React.useEffect(() => {
+    if (user?.currentGrade && !formData.semester) {
+      const calculatedSemester = getCurrentSemester(user.currentGrade);
+      console.log('初始化时计算的学期:', calculatedSemester);
+      setFormData(prev => ({ ...prev, semester: calculatedSemester }));
     }
-  };
+  }, [user?.currentGrade, formData.semester, setFormData]);
 
   const handleFileChange = (selectedFile) => {
     setFile(selectedFile);
@@ -43,6 +38,22 @@ function Upload({ addQuestion }) {
       };
       reader.readAsDataURL(selectedFile);
     }
+    // 重置表单数据和OCR结果，避免显示之前的内容
+    setOcrError('');
+    setOcrResult(null);
+    setFormData({
+      subject: '',
+      semester: '',
+      question: '',
+      correctAnswer: '',
+      wrongAnswer: '',
+      reason: '',
+      tags: [],
+      questionType: '',
+      difficulty: 'medium',
+      grade: '',
+      semesterType: '1'
+    });
   };
 
   const handleRemoveFile = () => {
@@ -124,7 +135,7 @@ function Upload({ addQuestion }) {
           console.log('可用的学期选项:', getSemesterOptions(user?.currentGrade));
           setFormData(prev => ({ ...prev, semester: combinedSemester }));
         } else if (user?.currentGrade) {
-          const calculatedSemester = getCurrentSemester();
+          const calculatedSemester = getCurrentSemester(user.currentGrade);
           console.log('使用前端计算的学期:', calculatedSemester);
           setFormData(prev => ({ ...prev, semester: calculatedSemester }));
         }
@@ -139,7 +150,15 @@ function Upload({ addQuestion }) {
         }
         if (data.errorReason) setFormData(prev => ({ ...prev, reason: data.errorReason }));
         if (data.errorType && data.errorType !== 'none') {
-          const errorTypeLabel = ERROR_TYPES.find(t => t.value === data.errorType)?.label || '其他';
+          // 映射错误类型到中文标签
+          const errorTypeMap = {
+            'calculation': '计算错误',
+            'concept': '概念不清',
+            'reading': '审题错误',
+            'careless': '粗心大意',
+            'none': '无错误'
+          };
+          const errorTypeLabel = errorTypeMap[data.errorType] || data.errorType;
           console.log('设置错误类型标签:', errorTypeLabel);
           setFormData(prev => ({ ...prev, tags: [errorTypeLabel] }));
         } else {
@@ -210,6 +229,7 @@ function Upload({ addQuestion }) {
         <ImageUpload
           file={file}
           preview={preview}
+          ocrResult={ocrResult}
           onFileChange={handleFileChange}
           onRemove={handleRemoveFile}
           selectedModel={selectedModel}
@@ -229,10 +249,10 @@ function Upload({ addQuestion }) {
             {ocrResult && (
               <Alert severity="success" sx={{ mb: 2 }}>
                 <strong>智能识别完成</strong><br/>
-                学科: {ocrResult.subject} |
-                题目类型: {ocrResult.questionType} |
+                学科: {SUBJECTS.find(s => s.value === ocrResult.subject)?.label || ocrResult.subject} |
+                题目类型: {QUESTION_TYPES.find(q => q.value === ocrResult.questionType)?.label || ocrResult.questionType} |
                 置信度: {(ocrResult.confidence * 100).toFixed(0)}%<br/>
-                {ocrResult.isWrong && <span style={{color: '#d32f2f'}}>识别到错误答案（{ocrResult.errorType}）</span>}
+                {ocrResult.isWrong && <span style={{color: '#d32f2f'}}>识别到错误答案（{ERROR_TYPES.find(t => t.value === ocrResult.errorType)?.label || ocrResult.errorType}）</span>}
               </Alert>
             )}
 

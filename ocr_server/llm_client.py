@@ -97,8 +97,8 @@ class OllamaLLMClient:
 {{
   "is_question": true/false,
   "subject": "math/chinese/english/unknown",
-  "question_type": "single_choice/multiple_choice/fill_blank/short_answer/essay",
   "question_text": "题目完整内容（忠实地提取，不要修改）",
+  "question_type": "single_choice/multiple_choice/fill_blank/short_answer/essay",
   "options": [
     {{"key": "A", "text": "选项A内容"}},
     {{"key": "B", "text": "选项B内容"}},
@@ -107,13 +107,13 @@ class OllamaLLMClient:
   ],
   "correct_answer": "正确答案",
   "difficulty": "easy/medium/hard",
-  "student_answer": "学生填写的答案（如果没有则为空）",
+  "student_answer": "学生答案（如果识别到）",
   "student_answer_bbox": {{"x": 0, "y": 0, "width": 0, "height": 0}},
   "is_wrong": true/false,
   "error_type": "calculation/concept/reading/careless/none",
-  "error_reason": "错误原因详细分析",
+  "error_reason": "错误原因",
   "confidence": 0.95,
-  "explanation": "题目详细解析"
+  "explanation": "题目解析"
 }}
 
 重要指导原则：
@@ -132,6 +132,7 @@ class OllamaLLMClient:
    - 不要举例小学生还没学过的知识点（比如小数、分数、负数等）
    - 用具体的、生活化的例子说明
    - 简洁明了，一句话说清楚即可
+   - **对于英语学科的题目，分析内容必须使用中文**
 
 4. **error_type 分类标准**（必须从以下4个中选择一个）**：
    - **calculation（计算错误）**：加减乘除算错了、进位借位错了、小数点点错了、抄错数字、写错符号等
@@ -151,7 +152,14 @@ class OllamaLLMClient:
    - chinese（语文）：有拼音、汉字、词语、古诗、阅读理解等
    - english（英语）：有英文单词、翻译、语法等
 
-7. 其他要求：
+7. **语言要求**：
+   - 对于英语学科的题目：
+     - 题目内容和答案可以保留英文
+     - 但**分析内容（错误原因、解析、推理步骤等）必须使用中文**
+   - 对于其他学科的题目：
+     - 所有内容都使用中文
+
+8. 其他要求：
    - student_answer_bbox 表示学生答案在图片中的位置（百分比坐标，0-1之间）
    - 如果文字不是题目，设置 is_question 为 false"""
 
@@ -220,6 +228,17 @@ class OllamaLLMClient:
         """解析 LLM 返回的 JSON"""
         import re
 
+        # 清理文本，去除可能的前缀和后缀
+        text = text.strip()
+        
+        # 处理可能的代码块格式
+        if text.startswith('```json'):
+            text = text[7:]
+        if text.startswith('```'):
+            text = text[3:]
+        if text.endswith('```'):
+            text = text[:-3]
+        
         # 提取 JSON 块
         json_match = re.search(r'\{[\s\S]*\}', text)
         if json_match:
@@ -229,7 +248,14 @@ class OllamaLLMClient:
                 result['raw_response'] = text
                 return result
             except json.JSONDecodeError:
-                pass
+                # 尝试清理 JSON 字符串，去除可能的无效字符
+                json_str = json_str.replace('\n', ' ').replace('\r', ' ')
+                try:
+                    result = json.loads(json_str)
+                    result['raw_response'] = text
+                    return result
+                except json.JSONDecodeError:
+                    pass
 
         # 解析失败，返回默认结构
         return {

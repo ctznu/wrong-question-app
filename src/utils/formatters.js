@@ -3,6 +3,22 @@
  */
 
 /**
+ * 获取当前学期
+ */
+export const getCurrentSemester = (currentGrade) => {
+  if (!currentGrade) return '';
+  
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  
+  if (month >= 9 || month <= 2) {
+    return `${currentGrade}-上`;
+  } else {
+    return `${currentGrade}-下`;
+  }
+};
+
+/**
  * 获取年级标签
  */
 export const getGradeLabel = (grade) => {
