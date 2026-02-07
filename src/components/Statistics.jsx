@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Paper, Grid, Card, CardContent, LinearProgress, Chip } from '@mui/material';
-import { BarChart, PieChart, TrendingUp, Calendar, BookOpen, Filter } from 'lucide-react';
+import { BarChart, PieChart, TrendingUp, Calendar, BookOpen } from 'lucide-react';
 import { Bar } from 'react-chartjs-2';
 import { Pie } from 'react-chartjs-2';
 import {
@@ -14,7 +14,6 @@ import {
   ArcElement,
 } from 'chart.js';
 
-// 注册Chart.js组件
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -25,6 +24,8 @@ ChartJS.register(
   ArcElement
 );
 
+const API_BASE_URL = 'http://localhost:5001/api';
+
 function Statistics() {
   const [stats, setStats] = useState({
     totalQuestions: 0,
@@ -33,42 +34,35 @@ function Statistics() {
     questionsByTag: {},
     monthlyGrowth: []
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  // 模拟获取统计数据
   useEffect(() => {
-    // 在实际应用中，这里会从API获取数据
-    setTimeout(() => {
-      setStats({
-        totalQuestions: 42,
-        questionsBySubject: {
-          math: 18,
-          chinese: 15,
-          english: 9
-        },
-        questionsBySemester: {
-          '2023-秋季': 25,
-          '2024-春季': 17
-        },
-        questionsByTag: {
-          '代数': 12,
-          '几何': 8,
-          '阅读理解': 10,
-          '语法': 6,
-          '计算': 15
-        },
-        monthlyGrowth: [
-          { month: 'Jan', count: 3 },
-          { month: 'Feb', count: 7 },
-          { month: 'Mar', count: 5 },
-          { month: 'Apr', count: 9 },
-          { month: 'May', count: 6 },
-          { month: 'Jun', count: 12 }
-        ]
-      });
-      setLoading(false);
-    }, 800);
+    fetchStatistics();
   }, []);
+
+  const fetchStatistics = async () => {
+    setLoading(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/statistics`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '获取统计数据失败');
+      }
+
+      const data = await response.json();
+      setStats(data);
+    } catch (err) {
+      console.error('获取统计数据失败:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // 图表配置
   const barChartData = {

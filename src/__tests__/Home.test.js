@@ -1,5 +1,5 @@
 // src/__tests__/Home.test.js
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import Home from '../components/Home';
 
 const mockQuestions = [

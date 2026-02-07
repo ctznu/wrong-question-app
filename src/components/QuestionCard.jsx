@@ -1,5 +1,5 @@
 	import React from 'react';
-	import { Camera, FileText, PlusCircle, CheckCircle } from 'lucide-react';
+	import { FileText, PlusCircle, CheckCircle } from 'lucide-react';
 	function QuestionCard({ question, onGenerateSimilar }) {
 	  return (
 	    <div className="question-card">

@@ -4,7 +4,7 @@ import App from '../App';
 
 // Mock the child components since we're testing App integration
 jest.mock('../components/Home', () => () => <div data-testid="home-component">Home Component</div>);
-jest.mock('../components/Upload', () => () => <div data-testid="upload-component">Upload Component</div>);
+jest.mock('../components/Upload/index', () => () => <div data-testid="upload-component">Upload Component</div>);
 jest.mock('../components/QuestionDetail', () => () => <div data-testid="question-detail-component">Question Detail Component</div>);
 jest.mock('../components/Generator', () => () => <div data-testid="generator-component">Generator Component</div>);
 jest.mock('../components/Printer', () => () => <div data-testid="printer-component">Printer Component</div>);

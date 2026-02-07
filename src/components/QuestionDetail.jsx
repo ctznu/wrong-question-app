@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Button, Box, TextField, Card, CardContent, Paper, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Alert, Snackbar, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, Stack } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Edit3, Save, X, RotateCcw, ArrowLeft, Lightbulb, Loader2, CheckCircle } from 'lucide-react';
+import { Edit3, Save, X, ArrowLeft, Lightbulb, Loader2, CheckCircle } from 'lucide-react';
 
 const getGradeLabel = (grade) => {
   const gradeMap = {

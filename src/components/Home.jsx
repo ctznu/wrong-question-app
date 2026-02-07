@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Typography, Button, Card, CardContent, CardActions, Chip, Select, MenuItem, FormControl, InputLabel, Box, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { BookOpen, Search, Filter, LayoutGrid, LayoutList } from 'lucide-react';
+import { Search, Filter, LayoutGrid, LayoutList } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const subjects = [
@@ -44,9 +44,6 @@ function Home({ questions, deleteQuestion }) {
   const getSemesterOptions = () => {
     const currentGrade = user?.currentGrade;
     if (!currentGrade) return [];
-    
-    const now = new Date();
-    const month = now.getMonth() + 1;
     
     const options = [];
     

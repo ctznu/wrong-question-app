@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AppBar, Toolbar, Typography, Button, Container, CircularProgress, Alert, Box } from '@mui/material';
 import { LogOut, BookOpen } from 'lucide-react';
 import Home from './components/Home';
-import Upload from './components/Upload';
+import Upload from './components/Upload/index';
 import QuestionDetail from './components/QuestionDetail';
 import Generator from './components/Generator';
 import Printer from './components/Printer';
@@ -14,6 +14,7 @@ import Settings from './components/Settings';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { UploadProvider } from './contexts/UploadContext';
 import './App.css';
 
 const API_BASE_URL = 'http://localhost:5001/api';
@@ -56,7 +57,7 @@ const MainApp = () => {
   const { user, logout } = useAuth();
 
   // 获取所有问题
-  const fetchQuestions = async () => {
+  const fetchQuestions = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -86,7 +87,7 @@ const MainApp = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [logout]);
 
   // 添加问题
   const addQuestion = async (newQuestion) => {
@@ -204,7 +205,7 @@ const MainApp = () => {
 
   useEffect(() => {
     fetchQuestions();
-  }, [user]);
+  }, [user, fetchQuestions]);
 
   if (loading) {
     return (
@@ -316,7 +317,9 @@ const MainApp = () => {
 function App() {
   return (
     <AuthProvider>
-      <MainApp />
+      <UploadProvider>
+        <MainApp />
+      </UploadProvider>
     </AuthProvider>
   );
 }

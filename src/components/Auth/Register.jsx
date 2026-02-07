@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Typography, Button, Box, TextField, Paper, Alert, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
-import { UserPlus, LogIn } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 

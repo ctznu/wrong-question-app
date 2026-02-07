@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import OcrOverlay from './OcrOverlay';
-import { Container, Typography, Button, Box, TextField, Select, MenuItem, FormControl, InputLabel, CircularProgress, Alert, Paper, InputAdornment, IconButton, Checkbox, FormGroup, FormControlLabel, Stack } from '@mui/material';
+import { Container, Typography, Button, Box, TextField, Select, MenuItem, FormControl, InputLabel, Alert, Paper, InputAdornment, IconButton, Checkbox, FormControlLabel, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { Upload as UploadIcon, Scan, Save, X } from 'lucide-react';
+import { Upload as UploadIcon, Save, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const QwenLogo = () => (
@@ -340,14 +340,34 @@ function Upload({ addQuestion }) {
             )}
             {preview && (
               <Box sx={{ mt: 2, textAlign: 'center' }}>
-                <Button
-                  variant="contained"
-                  onClick={() => handleOCRWithModel(selectedModel)}
-                  disabled={loading}
-                  sx={{ minWidth: 200 }}
-                >
-                  {loading ? '识别中...' : `使用 ${llmModels.find(m => m.value === selectedModel)?.label || 'AI'} 识别`}
-                </Button>
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', alignItems: 'center', mb: 2 }}>
+                  <FormControl>
+                    <InputLabel sx={{ bgcolor: 'white', px: 0.5 }}>AI模型</InputLabel>
+                    <Select
+                      value={selectedModel}
+                      label="AI模型"
+                      onChange={(e) => setSelectedModel(e.target.value)}
+                      sx={{ minWidth: 200 }}
+                    >
+                      {llmModels.map(m => (
+                        <MenuItem key={m.value} value={m.value}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: m.color }} />
+                            {m.label}
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleOCRWithModel(selectedModel)}
+                    disabled={loading}
+                    sx={{ minWidth: 200 }}
+                  >
+                    {loading ? '识别中...' : `使用 ${llmModels.find(m => m.value === selectedModel)?.label || 'AI'} 识别`}
+                  </Button>
+                </Box>
               </Box>
             )}
           </Box>
@@ -387,24 +407,6 @@ function Upload({ addQuestion }) {
 
               {/* 学科和学期一起占一行 */}
               <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start' }}>
-                <FormControl>
-                  <InputLabel sx={{ bgcolor: 'white', px: 0.5 }}>AI模型 *</InputLabel>
-                  <Select
-                    value={selectedModel}
-                    label="AI模型"
-                    onChange={(e) => setSelectedModel(e.target.value)}
-                    sx={{ minWidth: 200 }}
-                  >
-                    {llmModels.map(m => (
-                      <MenuItem key={m.value} value={m.value}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: m.color }} />
-                          {m.label}
-                        </Box>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
                 <FormControl>
                   <InputLabel sx={{ bgcolor: 'white', px: 0.5 }}>学科 *</InputLabel>
                   <Select

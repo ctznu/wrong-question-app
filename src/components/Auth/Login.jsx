@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Container, Typography, Button, Box, TextField, Paper, Alert, Grid } from '@mui/material';
-import { Lock, UserPlus, LogIn } from 'lucide-react';
+import { Container, Typography, Button, Box, TextField, Paper, Alert } from '@mui/material';
+import { Lock, LogIn } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
