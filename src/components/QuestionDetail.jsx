@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Typography, Button, Box, TextField, Card, CardContent, Paper, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Alert, Snackbar, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, Stack } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Edit3, Save, X, ArrowLeft, Lightbulb, Loader2, CheckCircle } from 'lucide-react';
@@ -55,8 +55,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
     }
   }, [id, questions]);
 
-  // 加载生成的类似题目
-  const loadGeneratedQuestions = async () => {
+  const loadGeneratedQuestions = useCallback(async () => {
     if (question?._id || question?.id) {
       try {
         const token = localStorage.getItem('token');
@@ -80,11 +79,11 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
         console.error('加载生成的类似题目失败:', error);
       }
     }
-  };
+  }, [question?._id, question?.id]);
 
   useEffect(() => {
     loadGeneratedQuestions();
-  }, [question, loadGeneratedQuestions]);
+  }, [loadGeneratedQuestions]);
 
   const handleSave = async () => {
     try {

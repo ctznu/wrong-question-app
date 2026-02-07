@@ -48,9 +48,6 @@ export const formatSemester = (semester) => {
 export const getSemesterOptions = (currentGrade) => {
   if (!currentGrade) return [];
   
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  
   const options = [];
   
   for (let i = 0; i < 2; i++) {

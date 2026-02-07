@@ -5,7 +5,7 @@ import { Save, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUpload } from '../../contexts/UploadContext';
 import { ERROR_TYPES, SUBJECTS, QUESTION_TYPES } from '../../utils/constants';
-import { getSemesterOptions, getCurrentSemester } from '../../utils/formatters';
+import { getCurrentSemester } from '../../utils/formatters';
 import ImageUpload from './ImageUpload';
 import QuestionForm from './QuestionForm';
 
