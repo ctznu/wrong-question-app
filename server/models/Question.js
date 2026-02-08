@@ -1,154 +1,134 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
+const User = require('./User');
 
-const questionSchema = new mongoose.Schema({
+const Question = sequelize.define('Question', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: User,
+      key: 'id'
+    }
   },
   subject: {
-    type: String,
-    required: true,
-    enum: ['chinese', 'math', 'english', 'unknown']
+    type: DataTypes.ENUM('chinese', 'math', 'english', 'unknown'),
+    allowNull: false
   },
   semester: {
-    type: String,
-    required: true
+    type: DataTypes.STRING,
+    allowNull: false
   },
   question: {
-    type: String,
-    required: true
+    type: DataTypes.TEXT,
+    allowNull: false
   },
   correctAnswer: {
-    type: String,
-    required: true
+    type: DataTypes.STRING,
+    allowNull: false
   },
   wrongAnswer: {
-    type: String,
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
   reason: {
-    type: String,
-    default: ''
+    type: DataTypes.TEXT,
+    defaultValue: ''
   },
-  tags: [{
-    type: String
-  }],
+  tags: {
+    type: DataTypes.JSONB,
+    defaultValue: []
+  },
   imageUrl: {
-    type: String,
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
-  similarQuestions: [{
-    question: String,
-    answer: String,
-    explanation: String
-  }],
+  similarQuestions: {
+    type: DataTypes.JSONB,
+    defaultValue: []
+  },
   difficulty: {
-    type: String,
-    enum: ['easy', 'medium', 'hard'],
-    default: 'medium'
+    type: DataTypes.ENUM('easy', 'medium', 'hard'),
+    defaultValue: 'medium'
   },
-
-  // ========== 新增：智能识别相关字段 ==========
-
-  // 题目类型（单选、多选、填空、简答等）
   questionType: {
-    type: String,
-    enum: ['single_choice', 'multiple_choice', 'fill_blank', 'short_answer', 'essay'],
-    default: 'short_answer'
+    type: DataTypes.ENUM('single_choice', 'multiple_choice', 'fill_blank', 'short_answer', 'essay'),
+    defaultValue: 'short_answer'
   },
-
-  // 选项列表（用于选择题）
-  options: [{
-    key: { type: String },        // 选项标识: A, B, C, D
-    text: { type: String }       // 选项内容
-  }],
-
-  // 学生答案
+  options: {
+    type: DataTypes.JSONB,
+    defaultValue: []
+  },
   studentAnswer: {
-    type: String,
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
-
-  // 学生答案在图片中的位置（用于前端高亮标注）
   studentAnswerBbox: {
-    x: { type: Number, default: 0 },      // 左上角 X（百分比，0-1）
-    y: { type: Number, default: 0 },      // 左上角 Y（百分比，0-1）
-    width: { type: Number, default: 0 },  // 宽度（百分比）
-    height: { type: Number, default: 0 }  // 高度（百分比）
+    type: DataTypes.JSONB,
+    defaultValue: {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0
+    }
   },
-
-  // 学生答案是否错误
   isWrong: {
-    type: Boolean,
-    default: false
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
-
-  // 错误类型（预设类别）
   errorType: {
-    type: String,
-    enum: ['calculation', 'concept', 'reading', 'careless', 'none'],
-    default: 'none'
+    type: DataTypes.ENUM('calculation', 'concept', 'reading', 'careless', 'none'),
+    defaultValue: 'none'
   },
-
-  // 错误原因详细分析
   errorReason: {
-    type: String,
-    default: ''
+    type: DataTypes.TEXT,
+    defaultValue: ''
   },
-
-  // 题目详细解析
   explanation: {
-    type: String,
-    default: ''
+    type: DataTypes.TEXT,
+    defaultValue: ''
   },
-
-  // OCR 识别的原始文本
   ocrRawText: {
-    type: String,
-    default: ''
+    type: DataTypes.TEXT,
+    defaultValue: ''
   },
-
-  // OCR 识别的词块信息（用于前端可视化）
-  ocrWords: [{
-    text: String,
-    left: Number,
-    top: Number,
-    width: Number,
-    height: Number,
-    confidence: Number
-  }],
-
-  // LLM 识别源
+  ocrWords: {
+    type: DataTypes.JSONB,
+    defaultValue: []
+  },
   llmSource: {
-    type: String,
-    enum: ['ollama', 'api', 'none', 'rule_based'],
-    default: 'none'
+    type: DataTypes.ENUM('ollama', 'api', 'none', 'rule_based'),
+    defaultValue: 'none'
   },
-
-  // LLM 分析的置信度
   llmConfidence: {
-    type: Number,
+    type: DataTypes.FLOAT,
     min: 0,
     max: 1,
-    default: 0.5
+    defaultValue: 0.5
   },
-
-  // 识别时间戳
   analyzedAt: {
-    type: Date,
-    default: Date.now
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   },
-
-  // ========== 现有字段 ==========
   createdAt: {
-    type: Date,
-    default: Date.now
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   },
   updatedAt: {
-    type: Date,
-    default: Date.now
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   }
+}, {
+  tableName: 'questions'
 });
 
-module.exports = mongoose.model('Question', questionSchema);
+// 定义关联关系
+Question.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(Question, { foreignKey: 'userId' });
+
+module.exports = Question;

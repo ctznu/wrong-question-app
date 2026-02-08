@@ -32,15 +32,22 @@ router.get('/', auth, async (req, res) => {
     const filter = { userId: req.user.id };
     if (subject) filter.subject = subject;
     if (semester) filter.semester = semester;
-    if (tag) filter.tags = { $in: [tag] };
     
+    // 构建查询
+    const query = Question.findAll({
+      where: filter,
+      order: [['createdAt', 'DESC']],
+      limit: parseInt(limit),
+      offset: (parseInt(page) - 1) * parseInt(limit)
+    });
     
-    const questions = await Question.find(filter)
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+    // 计算总数
+    const countQuery = Question.count({
+      where: filter
+    });
     
-    const total = await Question.countDocuments(filter);
+    // 并行执行查询
+    const [questions, total] = await Promise.all([query, countQuery]);
     
     res.json({
       questions,
@@ -59,7 +66,12 @@ router.get('/', auth, async (req, res) => {
 // @access  Private
 router.get('/:id', auth, async (req, res) => {
   try {
-    const question = await Question.findOne({ _id: req.params.id, userId: req.user.id });
+    const question = await Question.findOne({
+      where: {
+        id: req.params.id,
+        userId: req.user.id
+      }
+    });
     
     if (!question) {
       return res.status(404).json({ msg: 'Question not found' });
@@ -68,9 +80,6 @@ router.get('/:id', auth, async (req, res) => {
     res.json(question);
   } catch (err) {
     console.error(err.message);
-    if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: 'Question not found' });
-    }
     res.status(500).send('Server Error');
   }
 });
@@ -82,7 +91,7 @@ router.post('/', auth, async (req, res) => {
   try {
     const { subject, semester, question, correctAnswer, wrongAnswer, reason, tags, imageUrl } = req.body;
     
-    const newQuestion = new Question({
+    const newQuestion = await Question.create({
       userId: req.user.id,
       subject,
       semester,
@@ -94,8 +103,7 @@ router.post('/', auth, async (req, res) => {
       imageUrl
     });
     
-    const savedQuestion = await newQuestion.save();
-    res.json(savedQuestion);
+    res.json(newQuestion);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -121,17 +129,22 @@ router.put('/:id', auth, async (req, res) => {
     if (similarQuestions) questionFields.similarQuestions = similarQuestions;
     questionFields.updatedAt = Date.now();
     
-    let updatedQuestion = await Question.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user.id },
-      { $set: questionFields },
-      { new: true }
-    );
-    
-    if (!updatedQuestion) {
+    // 先查找问题
+    let question = await Question.findOne({
+      where: {
+        id: req.params.id,
+        userId: req.user.id
+      }
+    });
+
+    if (!question) {
       return res.status(404).json({ msg: 'Question not found' });
     }
-    
-    res.json(updatedQuestion);
+
+    // 更新问题
+    question = await question.update(questionFields);
+
+    res.json(question);
   } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
@@ -146,18 +159,24 @@ router.put('/:id', auth, async (req, res) => {
 // @access  Private
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const question = await Question.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
+    // 先查找问题
+    const question = await Question.findOne({
+      where: {
+        id: req.params.id,
+        userId: req.user.id
+      }
+    });
     
     if (!question) {
       return res.status(404).json({ msg: 'Question not found' });
     }
     
+    // 删除问题
+    await question.destroy();
+    
     res.json({ msg: 'Question removed' });
   } catch (err) {
     console.error(err.message);
-    if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: 'Question not found' });
-    }
     res.status(500).send('Server Error');
   }
 });

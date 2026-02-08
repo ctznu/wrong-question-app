@@ -14,7 +14,7 @@ router.post('/login', async (req, res) => {
 
   try {
     // Check if user exists
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
@@ -34,7 +34,7 @@ router.post('/login', async (req, res) => {
     };
 
     // 获取完整的用户信息（排除密码）
-    const userWithoutPassword = await User.findById(user.id).select('-password');
+    const userWithoutPassword = await User.findByPk(user.id, { attributes: { exclude: ['password'] } });
 
     jwt.sign(
       payload,
@@ -45,7 +45,7 @@ router.post('/login', async (req, res) => {
 
         res.json({
           token,
-          user: userWithoutPassword.toJSON()
+          user: userWithoutPassword
         });
       }
     );
@@ -63,20 +63,18 @@ router.post('/register', async (req, res) => {
 
   try {
     // Check if user exists
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ where: { email } });
     if (user) {
       return res.status(400).json({ msg: 'User already exists' });
     }
 
     // Create new user
-    user = new User({
+    user = await User.create({
       username,
       email,
       password,
       role: role || 'parent'
     });
-
-    await user.save();
 
     // Return jsonwebtoken
     const payload = {
@@ -87,7 +85,7 @@ router.post('/register', async (req, res) => {
     };
 
     // 获取完整的用户信息（排除密码）
-    const userWithoutPassword = await User.findById(user.id).select('-password');
+    const userWithoutPassword = await User.findByPk(user.id, { attributes: { exclude: ['password'] } });
 
     jwt.sign(
       payload,
@@ -98,7 +96,7 @@ router.post('/register', async (req, res) => {
 
         res.json({
           token,
-          user: userWithoutPassword.toJSON()
+          user: userWithoutPassword
         });
       }
     );
@@ -120,7 +118,7 @@ router.get('/me', async (req, res) => {
     }
 
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(decoded.user.id).select('-password');
+    const user = await User.findByPk(decoded.user.id, { attributes: { exclude: ['password'] } });
 
     res.json(user);
   } catch (err) {
@@ -143,7 +141,7 @@ router.put('/update', async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     const { username, studentName, currentGrade } = req.body;
     
-    const user = await User.findById(decoded.user.id);
+    const user = await User.findByPk(decoded.user.id);
     
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
@@ -151,7 +149,7 @@ router.put('/update', async (req, res) => {
     
     if (username !== undefined) {
       if (username !== user.username) {
-        const existingUser = await User.findOne({ username });
+        const existingUser = await User.findOne({ where: { username } });
         if (existingUser) {
           return res.status(400).json({ msg: '用户名已被使用' });
         }
@@ -166,7 +164,7 @@ router.put('/update', async (req, res) => {
     }
     await user.save();
     
-    const userWithoutPassword = await User.findById(decoded.user.id).select('-password');
+    const userWithoutPassword = await User.findByPk(decoded.user.id, { attributes: { exclude: ['password'] } });
     res.json(userWithoutPassword);
   } catch (err) {
     console.error(err.message);
@@ -199,7 +197,7 @@ router.put('/change-password', async (req, res) => {
       return res.status(400).json({ msg: '新密码长度至少为6个字符' });
     }
     
-    const user = await User.findById(decoded.user.id);
+    const user = await User.findByPk(decoded.user.id);
     
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });

@@ -1,9 +1,16 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
 dotenv.config();
+
+// 导入数据库配置
+const { sequelize, testConnection } = require('./config/db');
+
+// 导入模型
+const User = require('./models/User');
+const Question = require('./models/Question');
+const GeneratedQuestion = require('./models/GeneratedQuestion');
 
 const app = express();
 
@@ -35,13 +42,6 @@ if (process.env.NODE_ENV === 'production') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/wrong-question-db', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('Connected to MongoDB'))
-.catch(err => console.error('Could not connect to MongoDB', err));
-
 const questionRoutes = require('./routes/questions');
 const userRoutes = require('./routes/users');
 const authRoutes = require('./routes/auth');
@@ -62,6 +62,26 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+// 启动服务器
+async function startServer() {
+  try {
+    // 测试数据库连接
+    await testConnection();
+    
+    // 同步数据库模型
+    await sequelize.sync({ alter: true });
+    console.log('Database models synchronized');
+    
+    // 启动服务器
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+// 调用启动函数
+startServer();

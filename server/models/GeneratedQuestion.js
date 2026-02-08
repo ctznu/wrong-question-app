@@ -1,47 +1,68 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
+const User = require('./User');
+const Question = require('./Question');
 
-const generatedQuestionSchema = new mongoose.Schema({
+const GeneratedQuestion = sequelize.define('GeneratedQuestion', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: User,
+      key: 'id'
+    }
   },
   originalQuestionId: {
-    type: mongoose.Schema.Types.Mixed,
-    required: true
+    type: DataTypes.INTEGER,
+    allowNull: false
   },
   questionText: {
-    type: String,
-    required: true
+    type: DataTypes.TEXT,
+    allowNull: false
   },
-  options: [{
-    key: { type: String },
-    text: { type: String }
-  }],
+  options: {
+    type: DataTypes.JSONB,
+    defaultValue: []
+  },
   correctAnswer: {
-    type: String,
-    required: true
+    type: DataTypes.STRING,
+    allowNull: false
   },
   explanation: {
-    type: String,
-    default: ''
+    type: DataTypes.TEXT,
+    defaultValue: ''
   },
   targetError: {
-    type: String,
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
   practicePoint: {
-    type: String,
-    default: ''
+    type: DataTypes.STRING,
+    defaultValue: ''
   },
   selected: {
-    type: Boolean,
-    default: false
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
   createdAt: {
-    type: Date,
-    default: Date.now
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   }
+}, {
+  tableName: 'generated_questions'
 });
 
-module.exports = mongoose.model('GeneratedQuestion', generatedQuestionSchema);
+// 定义关联关系
+GeneratedQuestion.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(GeneratedQuestion, { foreignKey: 'userId' });
+
+module.exports = GeneratedQuestion;
