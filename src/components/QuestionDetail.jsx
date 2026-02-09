@@ -104,7 +104,8 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
     setGeneratingSimilar(true);
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/generate_similar_questions', {
+      const ocrServerUrl = process.env.REACT_APP_OCR_SERVER_URL || 'http://106.14.163.150/:5000';
+      const response = await fetch(`${ocrServerUrl}/generate_similar_questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

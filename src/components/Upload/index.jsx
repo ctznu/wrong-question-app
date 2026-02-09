@@ -101,7 +101,7 @@ function Upload({ addQuestion }) {
       formData.append('model', model);
       
       // 从环境变量获取 OCR 服务器地址，或使用默认值
-      const ocrServerUrl = process.env.REACT_APP_OCR_SERVER_URL || 'http://127.0.0.1:5000';
+      const ocrServerUrl = process.env.REACT_APP_OCR_SERVER_URL || 'http://106.14.163.150:5000';
       
       const resp = await fetch(`${ocrServerUrl}/analyze`, {
         method: 'POST',
