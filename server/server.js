@@ -6,7 +6,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
-
+console.log('NODE_ENV:', process.env.NODE_ENV);
 // 配置 CORS
 if (process.env.NODE_ENV === 'production') {
   // 生产环境：只允许特定域名

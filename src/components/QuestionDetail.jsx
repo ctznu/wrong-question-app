@@ -66,7 +66,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
           headers['x-auth-token'] = token;
         }
         
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions/original/${question._id || question.id}`, {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://106.14.163.150:5001/api'}/generated-questions/original/${question._id || question.id}`, {
           headers
         });
         if (response.ok) {
@@ -539,7 +539,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     onClick={async () => {
                       try {
                         const token = localStorage.getItem('token');
-                        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions`, {
+                        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://106.14.163.150:5001/api'}/generated-questions`, {
                           method: 'POST',
                           headers: {
                             'Content-Type': 'application/json',
@@ -592,7 +592,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
               onClick={async () => {
                 try {
                   const token = localStorage.getItem('token');
-                  const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions`, {
+                  const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://106.14.163.150:5001/api'}/generated-questions`, {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
@@ -655,7 +655,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
             onClick={async () => {
               try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'}/generated-questions/${deleteDialog.question._id}`, {
+                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://106.14.163.150:5001/api'}/generated-questions/${deleteDialog.question._id}`, {
                   method: 'DELETE',
                   headers: {
                     'Content-Type': 'application/json',

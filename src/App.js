@@ -17,7 +17,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { UploadProvider } from './contexts/UploadContext';
 import './App.css';
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = 'http://106.14.163.150:5001/api';
 
 const theme = createTheme({
   palette: {

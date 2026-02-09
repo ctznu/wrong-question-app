@@ -24,7 +24,7 @@ ChartJS.register(
   ArcElement
 );
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = 'http://106.14.163.150:5001/api';
 
 function Statistics() {
   const [stats, setStats] = useState({

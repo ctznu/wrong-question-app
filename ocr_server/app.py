@@ -33,7 +33,7 @@ else:
     CORS(app)
 
 # Backend API endpoint
-BACKEND_API_URL = os.getenv('BACKEND_API_URL', 'http://localhost:5001/api')
+BACKEND_API_URL = os.getenv('BACKEND_API_URL', 'http://106.14.163.150:5001/api')
 
 
 def cleanup_uploads():

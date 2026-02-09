@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }) => {
         setToken(storedToken);
         try {
           // 使用环境变量或默认值作为 API 基础 URL
-          const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
+          const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://106.14.163.150:5001/api';
           
           const response = await fetch(`${apiBaseUrl}/auth/me`, {
             headers: {

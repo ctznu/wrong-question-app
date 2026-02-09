@@ -5,7 +5,7 @@ import html2canvas from 'html2canvas';
 import { Download, Printer as PrinterIcon, Filter, BookOpen, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = 'http://106.14.163.150:5001/api';
 
 const subjects = [
   { value: 'chinese', label: '语文', color: 'chinese-chip' },
