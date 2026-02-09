@@ -100,7 +100,10 @@ function Upload({ addQuestion }) {
       formData.append('file', file);
       formData.append('model', model);
       
-      const resp = await fetch('http://127.0.0.1:5000/analyze', {
+      // 从环境变量获取 OCR 服务器地址，或使用默认值
+      const ocrServerUrl = process.env.REACT_APP_OCR_SERVER_URL || 'http://127.0.0.1:5000';
+      
+      const resp = await fetch(`${ocrServerUrl}/analyze`, {
         method: 'POST',
         body: formData,
       });
