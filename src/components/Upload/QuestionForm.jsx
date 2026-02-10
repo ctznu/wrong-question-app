@@ -22,29 +22,38 @@ function QuestionForm({ formData, onChange, user }) {
   const semesters = getSemesterOptions(user?.currentGrade);
 
   return (
-    <>
-      {/* 学科和学期一起占一行 */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'flex-start' }}>
-        <FormControl>
+    <Box sx={{ px: { xs: 1, sm: 0 } }}>
+      {/* 学科和学期 - 响应式布局 */}
+      <Box 
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          gap: 2, 
+          mb: 2, 
+          alignItems: 'flex-start',
+          justifyContent: 'flex-start'
+        }}
+      >
+        <FormControl sx={{ minWidth: 120 }}>
           <InputLabel sx={{ bgcolor: 'white', px: 0.5 }}>学科 *</InputLabel>
           <Select
             value={formData.subject}
             label="学科 *"
             onChange={handleFieldChange('subject')}
-            sx={{ minWidth: 200 }}
+            sx={{ minWidth: 120, height: 40 }}
           >
             {SUBJECTS.map(s => (
               <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
             ))}
           </Select>
         </FormControl>
-        <FormControl>
+        <FormControl sx={{ minWidth: 150 }}>
           <InputLabel sx={{ bgcolor: 'white', px: 0.5 }}>学期</InputLabel>
           <Select
             value={formData.semester}
             label="学期"
             onChange={handleFieldChange('semester')}
-            sx={{ minWidth: 200 }}
+            sx={{ minWidth: 150, height: 40 }}
           >
             {semesters.map(s => {
               const [grade, semesterType] = s.split('-');
@@ -62,7 +71,7 @@ function QuestionForm({ formData, onChange, user }) {
           fullWidth
           label="题目内容 *"
           multiline
-          rows={3}
+          rows={{ xs: 4, sm: 3 }}
           value={formData.question}
           onChange={handleFieldChange('question')}
           placeholder="请输入题目内容..."
@@ -94,8 +103,15 @@ function QuestionForm({ formData, onChange, user }) {
         />
       </Box>
 
-      {/* 正确答案和错误答案放在一行，各占50% */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+      {/* 正确答案和错误答案 - 响应式布局 */}
+      <Box 
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: 2, 
+          mb: 2
+        }}
+      >
         <TextField
           fullWidth
           label="正确答案 *"
@@ -126,7 +142,7 @@ function QuestionForm({ formData, onChange, user }) {
             )
           }}
           onFocus={() => setFocusedField('correctAnswer')}
-          onBlur={() => setFocusedField('')}
+          onBlur={() => setFocusedField('correctAnswer')}
         />
         <TextField
           fullWidth
@@ -158,7 +174,7 @@ function QuestionForm({ formData, onChange, user }) {
             )
           }}
           onFocus={() => setFocusedField('wrongAnswer')}
-          onBlur={() => setFocusedField('')}
+          onBlur={() => setFocusedField('wrongAnswer')}
         />
       </Box>
 
@@ -168,7 +184,7 @@ function QuestionForm({ formData, onChange, user }) {
           fullWidth
           label="错误原因"
           multiline
-          rows={4}
+          rows={{ xs: 5, sm: 4 }}
           value={formData.reason}
           onChange={handleFieldChange('reason')}
           placeholder="请输入错误原因分析..."
@@ -196,7 +212,7 @@ function QuestionForm({ formData, onChange, user }) {
             )
           }}
           onFocus={() => setFocusedField('reason')}
-          onBlur={() => setFocusedField('')}
+          onBlur={() => setFocusedField('reason')}
         />
       </Box>
 
@@ -205,30 +221,39 @@ function QuestionForm({ formData, onChange, user }) {
         <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
           错误类型
         </Typography>
-        <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
+        <Stack 
+          direction="row" 
+          spacing={1} 
+          sx={{ flexWrap: 'wrap', gap: 1 }}
+        >
           <FormControlLabel
             control={<Checkbox checked={formData.tags.includes('计算错误')} onChange={(e) => handleTagChange('计算错误', e.target.checked)} />}
             label="计算错误"
+            sx={{ marginRight: 0 }}
           />
           <FormControlLabel
             control={<Checkbox checked={formData.tags.includes('概念不清')} onChange={(e) => handleTagChange('概念不清', e.target.checked)} />}
             label="概念不清"
+            sx={{ marginRight: 0 }}
           />
           <FormControlLabel
             control={<Checkbox checked={formData.tags.includes('审题错误')} onChange={(e) => handleTagChange('审题错误', e.target.checked)} />}
             label="审题错误"
+            sx={{ marginRight: 0 }}
           />
           <FormControlLabel
             control={<Checkbox checked={formData.tags.includes('粗心大意')} onChange={(e) => handleTagChange('粗心大意', e.target.checked)} />}
             label="粗心大意"
+            sx={{ marginRight: 0 }}
           />
           <FormControlLabel
             control={<Checkbox checked={formData.tags.includes('其他')} onChange={(e) => handleTagChange('其他', e.target.checked)} />}
             label="其他"
+            sx={{ marginRight: 0 }}
           />
         </Stack>
       </Box>
-    </>
+    </Box>
   );
 }
 

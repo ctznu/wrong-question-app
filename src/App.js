@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-ro
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AppBar, Toolbar, Typography, Button, Container, CircularProgress, Alert, Box } from '@mui/material';
-import { LogOut, BookOpen } from 'lucide-react';
+import { LogOut as LogOutIcon, BookOpen as BookOpenIcon, Home as HomeIcon, Upload as UploadIcon, Lightbulb as LightbulbIcon, Printer as PrinterIcon, BarChart as BarChartIcon, Settings as SettingsIcon } from 'lucide-react';
 import Home from './components/Home';
 import Upload from './components/Upload/index';
 import QuestionDetail from './components/QuestionDetail';
@@ -216,40 +216,275 @@ const MainApp = () => {
   // 渲染导航栏
   const renderNavbar = () => (
     <AppBar position="static">
-      <Toolbar sx={{ flexDirection: 'column', alignItems: 'flex-start', py: 2 }}>
-        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Box>
-            <Typography variant="h6" component={Link} to="/" sx={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
-              <BookOpen style={{ verticalAlign: 'middle', marginRight: '12px' }} />
-              小学生易错题管理系统
+      <Toolbar sx={{ flexDirection: 'column', alignItems: 'flex-start', py: { xs: 1, sm: 2 } }}>
+        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 1, flexWrap: 'wrap', gap: { xs: 1, sm: 2 } }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography 
+              variant="h6" 
+              component={Link} 
+              to="/" 
+              sx={{ 
+                textDecoration: 'none', 
+                color: 'inherit', 
+                display: 'flex', 
+                alignItems: 'center', 
+                flexWrap: 'wrap',
+                fontSize: { xs: '1.1rem', sm: '1.25rem' }
+              }}
+            >
+              <BookOpenIcon style={{ verticalAlign: 'middle', marginRight: { xs: '8px', sm: '12px' }, fontSize: { xs: '1.2rem', sm: '1.5rem' } }} />
+              <span>小学生易错题管理系统</span>
             </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                opacity: 0.9, 
+                mt: 0.5,
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                display: { xs: 'none', sm: 'block' }
+              }}
+            >
               智能识别、归纳、生成类似题目，助力孩子学习成长
             </Typography>
           </Box>
           {user ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="body2" sx={{ mr: 1 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  mr: 1, 
+                  textAlign: 'left',
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  display: { xs: 'none', sm: 'block' }
+                }}
+              >
                 欢迎, {user.username} ({user.role})
               </Typography>
-              <Button color="inherit" component={Link} to="/">首页</Button>
-              <Button color="inherit" component={Link} to="/upload">上传</Button>
-              <Button color="inherit" component={Link} to="/generator">生成题目</Button>
-              <Button color="inherit" component={Link} to="/printer">打印</Button>
-              <Button color="inherit" component={Link} to="/statistics">统计分析</Button>
-              <Button color="inherit" component={Link} to="/settings">设置</Button>
-              <Button
-                color="inherit"
-                onClick={logout}
-                startIcon={<LogOut size={16} />}
-              >
-                登出
-              </Button>
+              <Box sx={{ display: 'flex', flexDirection: 'row', gap: 0.5, flexWrap: 'wrap' }}>
+                <Button 
+                  color="inherit" 
+                  component={Link} 
+                  to="/" 
+                  size="small" 
+                  startIcon={<HomeIcon size={16} />}
+                  sx={{ 
+                    whiteSpace: 'nowrap', 
+                    minWidth: { xs: '48px', sm: 'auto' },
+                    padding: { xs: '8px', sm: '8px 16px' },
+                    '& .MuiButton-startIcon': {
+                      display: 'flex',
+                      margin: { xs: 0, sm: '0 8px 0 0' }
+                    },
+                    '& .MuiButton-label': {
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    },
+                    '& .MuiButton-text': {
+                      display: { xs: 'none', sm: 'inline' }
+                    }
+                  }} 
+                >
+                  首页
+                </Button>
+                <Button 
+                  color="inherit" 
+                  component={Link} 
+                  to="/upload" 
+                  size="small" 
+                  startIcon={<UploadIcon size={16} />}
+                  sx={{ 
+                    whiteSpace: 'nowrap', 
+                    minWidth: { xs: '48px', sm: 'auto' },
+                    padding: { xs: '8px', sm: '8px 16px' },
+                    '& .MuiButton-startIcon': {
+                      display: 'flex',
+                      margin: { xs: 0, sm: '0 8px 0 0' }
+                    },
+                    '& .MuiButton-label': {
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    },
+                    '& .MuiButton-text': {
+                      display: { xs: 'none', sm: 'inline' }
+                    }
+                  }} 
+                >
+                  上传
+                </Button>
+                <Button 
+                  color="inherit" 
+                  component={Link} 
+                  to="/generator" 
+                  size="small" 
+                  startIcon={<LightbulbIcon size={16} />}
+                  sx={{ 
+                    whiteSpace: 'nowrap', 
+                    minWidth: { xs: '48px', sm: 'auto' },
+                    padding: { xs: '8px', sm: '8px 16px' },
+                    '& .MuiButton-startIcon': {
+                      display: 'flex',
+                      margin: { xs: 0, sm: '0 8px 0 0' }
+                    },
+                    '& .MuiButton-label': {
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    },
+                    '& .MuiButton-text': {
+                      display: { xs: 'none', sm: 'inline' }
+                    }
+                  }} 
+                >
+                  生成题目
+                </Button>
+                <Button 
+                  color="inherit" 
+                  component={Link} 
+                  to="/printer" 
+                  size="small" 
+                  startIcon={<PrinterIcon size={16} />}
+                  sx={{ 
+                    whiteSpace: 'nowrap', 
+                    minWidth: { xs: '48px', sm: 'auto' },
+                    padding: { xs: '8px', sm: '8px 16px' },
+                    '& .MuiButton-startIcon': {
+                      display: 'flex',
+                      margin: { xs: 0, sm: '0 8px 0 0' }
+                    },
+                    '& .MuiButton-label': {
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    },
+                    '& .MuiButton-text': {
+                      display: { xs: 'none', sm: 'inline' }
+                    }
+                  }} 
+                >
+                  打印
+                </Button>
+                <Button 
+                  color="inherit" 
+                  component={Link} 
+                  to="/statistics" 
+                  size="small" 
+                  startIcon={<BarChartIcon size={16} />}
+                  sx={{ 
+                    whiteSpace: 'nowrap', 
+                    minWidth: { xs: '48px', sm: 'auto' },
+                    padding: { xs: '8px', sm: '8px 16px' },
+                    '& .MuiButton-startIcon': {
+                      display: 'flex',
+                      margin: { xs: 0, sm: '0 8px 0 0' }
+                    },
+                    '& .MuiButton-label': {
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    },
+                    '& .MuiButton-text': {
+                      display: { xs: 'none', sm: 'inline' }
+                    }
+                  }} 
+                >
+                  统计分析
+                </Button>
+                <Button 
+                  color="inherit" 
+                  component={Link} 
+                  to="/settings" 
+                  size="small" 
+                  startIcon={<SettingsIcon size={16} />}
+                  sx={{ 
+                    whiteSpace: 'nowrap', 
+                    minWidth: { xs: '48px', sm: 'auto' },
+                    padding: { xs: '8px', sm: '8px 16px' },
+                    '& .MuiButton-startIcon': {
+                      display: 'flex',
+                      margin: { xs: 0, sm: '0 8px 0 0' }
+                    },
+                    '& .MuiButton-label': {
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    },
+                    '& .MuiButton-text': {
+                      display: { xs: 'none', sm: 'inline' }
+                    }
+                  }} 
+                >
+                  设置
+                </Button>
+                <Button
+                  color="inherit"
+                  onClick={logout}
+                  startIcon={<LogOutIcon size={16} />}
+                  size="small"
+                  sx={{ 
+                    whiteSpace: 'nowrap', 
+                    minWidth: { xs: '48px', sm: 'auto' },
+                    padding: { xs: '8px', sm: '8px 16px' },
+                    '& .MuiButton-startIcon': {
+                      display: 'flex',
+                      margin: { xs: 0, sm: '0 8px 0 0' }
+                    },
+                    '& .MuiButton-label': {
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    },
+                    '& .MuiButton-text': {
+                      display: { xs: 'none', sm: 'inline' }
+                    }
+                  }}
+                >
+                  登出
+                </Button>
+              </Box>
             </Box>
           ) : (
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button color="inherit" component={Link} to="/login">登录</Button>
-              <Button color="inherit" component={Link} to="/register">注册</Button>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, flexWrap: 'wrap' }}>
+              <Button 
+                color="inherit" 
+                component={Link} 
+                to="/login" 
+                size="small" 
+                sx={{ 
+                  whiteSpace: 'nowrap', 
+                  minWidth: { xs: '48px', sm: 'auto' },
+                  padding: { xs: '8px', sm: '8px 16px' },
+                  '& .MuiButton-text': {
+                    display: { xs: 'none', sm: 'inline' }
+                  }
+                }} 
+              >
+                登录
+              </Button>
+              <Button 
+                color="inherit" 
+                component={Link} 
+                to="/register" 
+                size="small" 
+                sx={{ 
+                  whiteSpace: 'nowrap', 
+                  minWidth: { xs: '48px', sm: 'auto' },
+                  padding: { xs: '8px', sm: '8px 16px' },
+                  '& .MuiButton-text': {
+                    display: { xs: 'none', sm: 'inline' }
+                  }
+                }} 
+              >
+                注册
+              </Button>
             </Box>
           )}
         </Box>

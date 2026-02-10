@@ -152,27 +152,24 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
       <Container maxWidth="md" sx={{ mt: 2 }}>
         <Paper className="detail-card">
           <CardContent className="detail-card-content">
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h5" component="h1" gutterBottom>
-                错题详情
-              </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mb: 3 }}>
               <Button
                 variant="outlined"
                 onClick={() => navigate('/')}
                 startIcon={<ArrowLeft size={16} />}
+                size="small"
               >
                 返回首页
               </Button>
+              <Button
+                variant="outlined"
+                onClick={() => setIsEditing(!isEditing)}
+                startIcon={isEditing ? <X size={16} /> : <Edit3 size={16} />}
+                size="small"
+              >
+                {isEditing ? '取消编辑' : '编辑'}
+              </Button>
             </Box>
-
-            <Button
-              variant="outlined"
-              onClick={() => setIsEditing(!isEditing)}
-              startIcon={isEditing ? <X size={16} /> : <Edit3 size={16} />}
-              className="edit-button"
-            >
-              {isEditing ? '取消编辑' : '编辑'}
-            </Button>
 
             {question.imageUrl && (
               <Box sx={{ mb: 3, textAlign: 'center' }}>
@@ -192,15 +189,15 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     fullWidth
                     label="题目内容"
                     multiline
-                    rows={4}
+                    rows={{ xs: 3, md: 4 }}
                     value={editedQuestion.question || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, question: e.target.value })}
                     placeholder="请输入题目内容..."
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
                   />
                 </Box>
-                {/* 正确答案和错误答案放在一行，各占50% */}
-                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                {/* 正确答案和错误答案放在一行，各占50%，在移动设备上改为垂直排列 */}
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2 }}>
                   <TextField
                     fullWidth
                     label="正确答案"
@@ -226,19 +223,19 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     fullWidth
                     label="错误原因"
                     multiline
-                    rows={4}
+                    rows={{ xs: 3, md: 4 }}
                     value={editedQuestion.reason || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, reason: e.target.value })}
                     placeholder="请输入错误原因分析..."
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
                   />
                 </Box>
-                {/* 错误类型单独占一行，支持多选 */}
+                {/* 错误类型单独占一行，支持多选，在移动设备上改为垂直排列 */}
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
                     错误类型
                   </Typography>
-                  <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ flexWrap: 'wrap' }}>
                     <FormControlLabel
                       control={<Checkbox checked={editedQuestion.tags?.includes('计算错误')} onChange={(e) => handleTagChange('计算错误', e.target.checked)} />}
                       label="计算错误"
@@ -266,6 +263,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     variant="contained"
                     onClick={handleSave}
                     startIcon={<Save size={16} />}
+                    size="medium"
                   >
                     保存更改
                   </Button>
@@ -273,10 +271,10 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
               </Box>
             ) : (
               <Box>
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="body1" gutterBottom sx={{ fontWeight: 'bold' }}>
                   <strong>题目：</strong>
                 </Typography>
-                <Typography variant="body1" paragraph sx={{ whiteSpace: 'pre-line' }}>
+                <Typography variant="body2" paragraph sx={{ whiteSpace: 'pre-line' }}>
                   {question.question}
                 </Typography>
 
@@ -296,33 +294,34 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   </Box>
                 )}
 
-                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                {/* 正确答案和错误答案在移动设备上改为垂直排列 */}
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mt: 1 }}>
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" color="primary" gutterBottom>
+                    <Typography variant="body2" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
                       <strong>正确答案：</strong>
                     </Typography>
-                    <Typography variant="body1" paragraph>
+                    <Typography variant="body2" paragraph>
                       {question.correctAnswer}
                     </Typography>
                   </Box>
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" color="error" gutterBottom>
+                    <Typography variant="body2" color="error" gutterBottom sx={{ fontWeight: 'bold' }}>
                       <strong>错误答案：</strong>
                     </Typography>
-                    <Typography variant="body1" paragraph>
+                    <Typography variant="body2" paragraph>
                       {question.wrongAnswer}
                     </Typography>
                   </Box>
                 </Box>
 
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                <Typography variant="body2" gutterBottom sx={{ mt: 2, fontWeight: 'bold' }}>
                   <strong>错误原因：</strong>
                 </Typography>
-                <Typography variant="body1" paragraph>
+                <Typography variant="body2" paragraph>
                   {question.reason || '暂无错误原因分析'}
                 </Typography>
 
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                <Typography variant="body2" gutterBottom sx={{ mt: 2, fontWeight: 'bold' }}>
                   <strong>标签：</strong>
                 </Typography>
                 <Box sx={{ mb: 2 }}>
@@ -340,7 +339,8 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   ))}
                 </Box>
 
-                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                {/* 学期和创建时间在移动设备上改为垂直排列 */}
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mt: 1 }}>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" color="text.secondary">
                       <strong>学期：</strong> {formatSemester(question.semester)}
@@ -501,7 +501,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
           {similarQuestions && similarQuestions.length > 0 && (
             <Box>
               {similarQuestions.map((q, idx) => (
-                <Box key={idx} sx={{ mb: 3, pb: 3, borderBottom: idx < similarQuestions.length - 1 ? '1px solid #e0e0e0' : 'none' }}>
+                <Box key={idx} sx={{ mb: 3, pb: 3, borderBottom: idx < similarQuestions.length - 1 ? '1px solid #e0e0e0' : 'transparent' }}>
                   <Typography variant="h6" sx={{ mb: 1 }}>
                     题目 {idx + 1}
                   </Typography>

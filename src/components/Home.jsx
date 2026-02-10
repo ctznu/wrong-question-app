@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Container, Typography, Button, Card, CardContent, CardActions, Chip, Select, MenuItem, FormControl, InputLabel, Box, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Container, Typography, Button, Card, CardContent, CardActions, Chip, Select, MenuItem, FormControl, InputLabel, Box, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, useMediaQuery, useTheme, IconButton, Menu } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { Search, Filter, LayoutGrid, LayoutList } from 'lucide-react';
+import { Search, Filter, LayoutGrid, LayoutList, MoreVertical } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getGradeLabel, formatSemester, getSemesterOptions } from '../utils/formatters';
 
@@ -13,15 +13,34 @@ const subjects = [
 
 function Home({ questions, deleteQuestion }) {
   const { user } = useAuth();
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('');
   const [viewMode, setViewMode] = useState(() => {
-    return localStorage.getItem('viewMode') || 'card';
+    return localStorage.getItem('viewMode') || (isSmallScreen ? 'table' : 'card');
   });
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedQuestionId, setSelectedQuestionId] = useState(null);
+
+  // 当屏幕尺寸变化时，自动切换视图模式
+  useEffect(() => {
+    if (isSmallScreen && viewMode === 'card') {
+      setViewMode('table');
+      localStorage.setItem('viewMode', 'table');
+    } else if (!isSmallScreen && !localStorage.getItem('viewMode')) {
+      // 只在大屏幕且没有保存的视图模式时设置为卡片模式
+      setViewMode('card');
+      localStorage.setItem('viewMode', 'card');
+    }
+  }, [isSmallScreen, viewMode]);
 
   const handleViewModeChange = (mode) => {
-    setViewMode(mode);
-    localStorage.setItem('viewMode', mode);
+    // 只在大屏幕时允许切换到卡片模式
+    if (!isSmallScreen || mode === 'table') {
+      setViewMode(mode);
+      localStorage.setItem('viewMode', mode);
+    }
   };
 
   const semesters = getSemesterOptions(user?.currentGrade);
@@ -30,6 +49,28 @@ function Home({ questions, deleteQuestion }) {
     return (!selectedSubject || q.subject === selectedSubject) &&
            (!selectedSemester || q.semester === selectedSemester);
   });
+
+  const handleMenuOpen = (event, questionId) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedQuestionId(questionId);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedQuestionId(null);
+  };
+
+  const handleViewQuestion = () => {
+    handleMenuClose();
+    // Navigation will be handled by the Link component in the menu item
+  };
+
+  const handleDeleteQuestion = () => {
+    if (selectedQuestionId) {
+      deleteQuestion(selectedQuestionId);
+      handleMenuClose();
+    }
+  };
 
   return (
     <Container maxWidth="lg" sx={{ mt: 2 }}>
@@ -73,25 +114,27 @@ function Home({ questions, deleteQuestion }) {
               </Select>
             </FormControl>
           </Box>
-          <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
-            {viewMode === 'table' ? (
-              <Button
-                variant="contained"
-                onClick={() => handleViewModeChange('card')}
-                startIcon={<LayoutGrid size={16} />}
-              >
-                卡片
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                onClick={() => handleViewModeChange('table')}
-                startIcon={<LayoutList size={16} />}
-              >
-                表格
-              </Button>
-            )}
-          </Box>
+          {!isSmallScreen && (
+            <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+              {viewMode === 'table' ? (
+                <Button
+                  variant="contained"
+                  onClick={() => handleViewModeChange('card')}
+                  startIcon={<LayoutGrid size={16} />}
+                >
+                  卡片
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={() => handleViewModeChange('table')}
+                  startIcon={<LayoutList size={16} />}
+                >
+                  表格
+                </Button>
+              )}
+            </Box>
+          )}
         </Box>
         {!user?.currentGrade && (
           <Alert severity="info" sx={{ mb: 2 }}>
@@ -160,63 +203,92 @@ function Home({ questions, deleteQuestion }) {
         ) : (
           <TableContainer component={Paper} sx={{ mb: 4 }}>
             <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>学科</TableCell>
-                  <TableCell>题目</TableCell>
-                  <TableCell>学期</TableCell>
-                  <TableCell>标签</TableCell>
-                  <TableCell>操作</TableCell>
-                </TableRow>
-              </TableHead>
+              {!isSmallScreen && (
+                <TableHead>
+                  <TableRow>
+                    <TableCell>学科</TableCell>
+                    <TableCell>题目</TableCell>
+                    <TableCell>学期</TableCell>
+                    <TableCell>标签</TableCell>
+                    <TableCell>操作</TableCell>
+                  </TableRow>
+                </TableHead>
+              )}
               <TableBody>
                 {filteredQuestions.map(question => {
                   const subjectInfo = subjects.find(s => s.value === question.subject) || subjects[0];
                   return (
                     <TableRow key={question._id || question.id}>
-                      <TableCell>
+                      <TableCell sx={{ padding: isSmallScreen ? 1.5 : 'inherit' }}>
                         <Chip
-                          label={subjectInfo.label}
+                          label={isSmallScreen ? subjectInfo.label.charAt(0) : subjectInfo.label}
                           size="small"
                           className={`subject-chip ${subjectInfo.color}`}
                         />
                       </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <TableCell sx={{ 
+                        width: isSmallScreen ? '100%' : 'auto',
+                        minWidth: 120,
+                        maxWidth: isSmallScreen ? 'calc(100vw - 180px)' : '500px',
+                        padding: isSmallScreen ? 1.5 : 'inherit'
+                      }}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            overflow: 'hidden', 
+                            textOverflow: 'ellipsis', 
+                            whiteSpace: 'nowrap' 
+                          }}
+                        >
                           {question.question}
                         </Typography>
                       </TableCell>
-                      <TableCell>{formatSemester(question.semester)}</TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {question.tags && question.tags.filter(tag => tag && tag.trim()).slice(0, 2).map((tag, index) => (
-                            <Chip
-                              key={index}
-                              label={tag}
+                      {!isSmallScreen && <TableCell>{formatSemester(question.semester)}</TableCell>}
+                      {!isSmallScreen && (
+                        <TableCell>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {question.tags && question.tags.filter(tag => tag && tag.trim()).slice(0, 2).map((tag, index) => (
+                              <Chip
+                                key={index}
+                                label={tag}
+                                size="small"
+                                variant="outlined"
+                              />
+                            ))}
+                          </Box>
+                        </TableCell>
+                      )}
+                      <TableCell sx={{ padding: isSmallScreen ? 1.5 : 'inherit' }}>
+                        {isSmallScreen ? (
+                          <>
+                            <IconButton
                               size="small"
+                              onClick={(event) => handleMenuOpen(event, question._id || question.id)}
+                            >
+                              <MoreVertical size={16} />
+                            </IconButton>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              size="small"
+                              component={Link}
+                              to={`/question/${question._id || question.id}`}
+                              variant="contained"
+                              sx={{ mr: 1 }}
+                            >
+                              查看
+                            </Button>
+                            <Button
+                              size="small"
+                              color="error"
+                              onClick={() => deleteQuestion(question._id || question.id)}
                               variant="outlined"
-                            />
-                          ))}
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          size="small"
-                          component={Link}
-                          to={`/question/${question._id || question.id}`}
-                          variant="contained"
-                          sx={{ mr: 1 }}
-                        >
-                          查看
-                        </Button>
-                        <Button
-                          size="small"
-                          color="error"
-                          onClick={() => deleteQuestion(question._id || question.id)}
-                          variant="outlined"
-                        >
-                          删除
-                        </Button>
+                            >
+                              删除
+                            </Button>
+                          </>
+                        )}
                       </TableCell>
                     </TableRow>
                   );
@@ -236,6 +308,30 @@ function Home({ questions, deleteQuestion }) {
             </Typography>
           </Box>
         )}
+
+        {/* 三点菜单 */}
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleMenuClose}
+          sx={{
+            '& .MuiMenu-paper': {
+              borderRadius: 1,
+              minWidth: 120,
+            },
+          }}
+        >
+          <MenuItem 
+            component={Link} 
+            to={`/question/${selectedQuestionId}`}
+            onClick={handleViewQuestion}
+          >
+            查看
+          </MenuItem>
+          <MenuItem onClick={handleDeleteQuestion} sx={{ color: 'error.main' }}>
+            删除
+          </MenuItem>
+        </Menu>
       </Container>
   );
 }
