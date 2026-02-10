@@ -107,7 +107,7 @@ npm start
 
 服务将在以下端口运行：
 - 前端：http://localhost:3000
-- 后端：http://106.14.163.150:5001
+- 后端：http://localhost:5001
 - OCR 服务：http://localhost:5000
 
 #### 启动 OCR 服务

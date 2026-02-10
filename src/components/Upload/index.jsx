@@ -101,7 +101,7 @@ function Upload({ addQuestion }) {
       formData.append('model', model);
       
       // 从环境变量获取 OCR 服务器地址，或使用默认值
-      const ocrServerUrl = process.env.REACT_APP_OCR_SERVER_URL || 'http://106.14.163.150:5000';
+      const ocrServerUrl = process.env.REACT_APP_OCR_SERVER_URL || 'http://localhost:5000';
       
       const resp = await fetch(`${ocrServerUrl}/analyze`, {
         method: 'POST',
@@ -180,7 +180,7 @@ function Upload({ addQuestion }) {
     try {
       const token = localStorage.getItem('token');
       // 使用环境变量或默认值作为 API 基础 URL
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://106.14.163.150:5001/api';
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
       
       const response = await fetch(`${apiBaseUrl}/questions`, {
         method: 'POST',

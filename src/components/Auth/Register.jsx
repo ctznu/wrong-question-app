@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 // 使用环境变量或默认值作为 API 基础 URL
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://106.14.163.150:5001/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
 
 
 function Register() {
