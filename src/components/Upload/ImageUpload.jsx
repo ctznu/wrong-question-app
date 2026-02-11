@@ -73,7 +73,7 @@ function ImageUpload({ file, preview, onFileChange, onRemove, selectedModel, onM
           <Box 
             sx={{
               display: 'flex',
-              flexDirection: { xs: 'row', sm: 'column' },
+              flexDirection: 'row',
               gap: 2,
               justifyContent: 'center',
               alignItems: 'center'
