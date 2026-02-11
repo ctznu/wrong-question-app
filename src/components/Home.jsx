@@ -75,14 +75,14 @@ function Home({ questions, deleteQuestion }) {
   return (
     <Container maxWidth="lg" sx={{ mt: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <FormControl sx={{ minWidth: 160 }}>
-              <InputLabel sx={{ minWidth: 120, bgcolor: 'white', px: 0.5 }}><Filter size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学科</InputLabel>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'nowrap', width: '100%' }}>
+            <FormControl sx={{ width: '50%' }}>
+              <InputLabel sx={{ minWidth: 'auto', bgcolor: 'white', px: 0.5 }}><Filter size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学科</InputLabel>
               <Select
                 value={selectedSubject}
                 label="选择学科"
                 onChange={(e) => setSelectedSubject(e.target.value)}
-                sx={{ minWidth: 160 }}
+                sx={{ width: '100%' }}
               >
                 <MenuItem value="">
                   <em>全部学科</em>
@@ -94,13 +94,13 @@ function Home({ questions, deleteQuestion }) {
                 ))}
               </Select>
             </FormControl>
-            <FormControl sx={{ minWidth: 160 }}>
-              <InputLabel sx={{ minWidth: 120, bgcolor: 'white', px: 0.5 }}><Search size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学期</InputLabel>
+            <FormControl sx={{ width: '50%' }}>
+              <InputLabel sx={{ minWidth: 'auto', bgcolor: 'white', px: 0.5 }}><Search size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学期</InputLabel>
               <Select
                 value={selectedSemester}
                 label="选择学期"
                 onChange={(e) => setSelectedSemester(e.target.value)}
-                sx={{ minWidth: 160 }}
+                sx={{ width: '100%' }}
               >
                 <MenuItem value="">
                   <em>全部学期</em>

@@ -123,9 +123,9 @@ function Settings() {
   };
 
   return (
-    <Container maxWidth="md" className="app-main-container">
-      <Container maxWidth="md" sx={{ mt: 2 }}>
-        <Paper sx={{ p: 3 }}>
+    <Container maxWidth="md" className="app-main-container" sx={{ px: { xs: 0, sm: 2 } }}>
+      <Container maxWidth="md" sx={{ mt: 2, px: { xs: 0, sm: 2 } }}>
+        <Paper sx={{ p: 3, mx: { xs: 0, sm: 'auto' } }}>
           <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
             <SettingsIcon size={24} style={{ marginRight: '12px' }} />
             设置

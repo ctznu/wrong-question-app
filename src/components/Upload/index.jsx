@@ -220,8 +220,8 @@ function Upload({ addQuestion }) {
   };
 
   return (
-    <Container maxWidth="lg" className="app-main-container">
-      <Container maxWidth="lg" sx={{ mt: 2 }}>
+    <Container maxWidth="lg" className="app-main-container" sx={{ px: { xs: 0, sm: 2 } }}>
+      <Container maxWidth="lg" sx={{ mt: 2, px: { xs: 0, sm: 2 } }}>
         <ImageUpload
           file={file}
           preview={preview}

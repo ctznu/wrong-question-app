@@ -132,9 +132,9 @@ function Statistics() {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" className="app-main-container">
-        <Container maxWidth="lg" sx={{ mt: 2 }}>
-          <Paper className="upload-area-container">
+      <Container maxWidth="lg" className="app-main-container" sx={{ px: { xs: 0, sm: 2 } }}>
+        <Container maxWidth="lg" sx={{ mt: 2, px: { xs: 0, sm: 2 } }}>
+          <Paper className="upload-area-container" sx={{ mx: { xs: 0, sm: 'auto' } }}>
             <Typography variant="h5" className="upload-area-title" gutterBottom>
               <BarChart size={24} style={{ verticalAlign: 'middle', marginRight: '12px' }} />
               数据统计与分析
@@ -152,9 +152,9 @@ function Statistics() {
   }
 
   return (
-    <Container maxWidth="lg" className="app-main-container">
-      <Container maxWidth="lg" sx={{ mt: 2 }}>
-        <Paper className="upload-area-container">
+    <Container maxWidth="lg" className="app-main-container" sx={{ px: { xs: 0, sm: 2 } }}>
+      <Container maxWidth="lg" sx={{ mt: 2, px: { xs: 0, sm: 2 } }}>
+        <Paper className="upload-area-container" sx={{ mx: { xs: 0, sm: 'auto' } }}>
           <Typography variant="h5" className="upload-area-title" gutterBottom>
             <BarChart size={24} style={{ verticalAlign: 'middle', marginRight: '12px' }} />
             数据统计与分析

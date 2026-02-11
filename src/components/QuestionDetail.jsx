@@ -148,10 +148,10 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
   if (!question) return <Typography>加载中...</Typography>;
 
   return (
-    <Container maxWidth="md" className="app-main-container">
-      <Container maxWidth="md" sx={{ mt: 2 }}>
-        <Paper className="detail-card">
-          <CardContent className="detail-card-content">
+    <Container maxWidth="md" className="app-main-container" sx={{ px: { xs: 0, sm: 2 } }}>
+      <Container maxWidth="md" sx={{ mt: 2, px: { xs: 0, sm: 2 } }}>
+        <Paper className="detail-card" sx={{ mx: { xs: 0, sm: 'auto' } }}>
+          <CardContent className="detail-card-content" sx={{ px: { xs: 1, sm: 2 } }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mb: 3 }}>
               <Button
                 variant="outlined"

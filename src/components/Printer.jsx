@@ -454,51 +454,47 @@ function Printer({ questions }) {
 
   return (
     <>
-      <Container maxWidth="md" className="app-main-container">
-        <Container maxWidth="md" sx={{ mt: 2 }}>
-          <Paper className="upload-area-container">
+      <Container maxWidth="md" className="app-main-container" sx={{ px: { xs: 0, sm: 2 } }}>
+        <Container maxWidth="md" sx={{ mt: 2, px: { xs: 0, sm: 2 } }}>
+          <Paper className="upload-area-container" sx={{ mx: { xs: 0, sm: 'auto' } }}>
             <Typography variant="h5" className="upload-area-title" gutterBottom>
               <PrinterIcon size={24} style={{ verticalAlign: 'middle', marginRight: '12px' }} />
               打印和PDF导出
             </Typography>
 
-            <Grid container spacing={3} sx={{ mb: 3 }}>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel sx={{ minWidth: 120, bgcolor: 'white', px: 0.5 }}><Filter size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学科</InputLabel>
-                  <Select
-                    value={selectedSubject}
-                    label="选择学科"
-                    onChange={(e) => setSelectedSubject(e.target.value)}
-                    sx={{ minWidth: 150 }}
-                  >
-                    <MenuItem value="">全部学科</MenuItem>
-                    {subjects.map(s => (
-                      <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel sx={{ minWidth: 120, bgcolor: 'white', px: 0.5 }}><BookOpen size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学期</InputLabel>
-                  <Select
-                    value={selectedSemester}
-                    label="选择学期"
-                    onChange={(e) => setSelectedSemester(e.target.value)}
-                    sx={{ minWidth: 150 }}
-                  >
-                    <MenuItem value="">全部学期</MenuItem>
-                    {semesters.map(s => {
-                      const [grade, semesterType] = s.split('-');
-                      return (
-                        <MenuItem key={s} value={s}>{getGradeLabel(grade)}-{semesterType}</MenuItem>
-                      );
-                    })}
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
+            <Box sx={{ display: 'flex', gap: 1, mb: 3, width: '100%' }}>
+              <FormControl sx={{ width: '50%' }}>
+                <InputLabel sx={{ minWidth: 'auto', bgcolor: 'white', px: 0.5 }}><Filter size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学科</InputLabel>
+                <Select
+                  value={selectedSubject}
+                  label="选择学科"
+                  onChange={(e) => setSelectedSubject(e.target.value)}
+                  sx={{ width: '100%' }}
+                >
+                  <MenuItem value="">全部学科</MenuItem>
+                  {subjects.map(s => (
+                    <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormControl sx={{ width: '50%' }}>
+                <InputLabel sx={{ minWidth: 'auto', bgcolor: 'white', px: 0.5 }}><BookOpen size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学期</InputLabel>
+                <Select
+                  value={selectedSemester}
+                  label="选择学期"
+                  onChange={(e) => setSelectedSemester(e.target.value)}
+                  sx={{ width: '100%' }}
+                >
+                  <MenuItem value="">全部学期</MenuItem>
+                  {semesters.map(s => {
+                    const [grade, semesterType] = s.split('-');
+                    return (
+                      <MenuItem key={s} value={s}>{getGradeLabel(grade)}-{semesterType}</MenuItem>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+            </Box>
 
             <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               <Button variant="outlined" onClick={selectAllOriginal}>
