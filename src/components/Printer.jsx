@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Button, Box, FormControl, InputLabel, Select, MenuItem, Grid, Card, CardContent, Checkbox, FormControlLabel, Paper, Chip, Alert, Collapse, Snackbar } from '@mui/material';
+import { Container, Typography, Button, Box, FormControl, InputLabel, Select, MenuItem, Card, CardContent, Checkbox, FormControlLabel, Paper, Chip, Alert, Collapse, Snackbar } from '@mui/material';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Download, Printer as PrinterIcon, Filter, BookOpen, ChevronDown, ChevronRight } from 'lucide-react';
