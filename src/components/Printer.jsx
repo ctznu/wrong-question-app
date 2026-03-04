@@ -463,7 +463,7 @@ function Printer({ questions }) {
             </Typography>
 
             <Box sx={{ display: 'flex', gap: 1, mb: 3, width: '100%' }}>
-              <FormControl sx={{ width: '50%' }}>
+              <FormControl sx={{ width: { xs: '50%', sm: 150 } }}>
                 <InputLabel sx={{ minWidth: 'auto', bgcolor: 'white', px: 0.5 }}><Filter size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学科</InputLabel>
                 <Select
                   value={selectedSubject}
@@ -477,7 +477,7 @@ function Printer({ questions }) {
                   ))}
                 </Select>
               </FormControl>
-              <FormControl sx={{ width: '50%' }}>
+              <FormControl sx={{ width: { xs: '50%', sm: 150 } }}>
                 <InputLabel sx={{ minWidth: 'auto', bgcolor: 'white', px: 0.5 }}><BookOpen size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学期</InputLabel>
                 <Select
                   value={selectedSemester}

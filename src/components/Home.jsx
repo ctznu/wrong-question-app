@@ -75,8 +75,14 @@ function Home({ questions, deleteQuestion }) {
   return (
     <Container maxWidth="lg" sx={{ mt: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'nowrap', width: '100%' }}>
-            <FormControl sx={{ width: '50%' }}>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 2, 
+            flexWrap: 'nowrap',
+            flex: 1,
+            width: isSmallScreen ? '100%' : 'auto'
+          }}>
+            <FormControl sx={{ width: isSmallScreen ? '50%' : 280 }}>
               <InputLabel sx={{ minWidth: 'auto', bgcolor: 'white', px: 0.5 }}><Filter size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学科</InputLabel>
               <Select
                 value={selectedSubject}
@@ -94,7 +100,7 @@ function Home({ questions, deleteQuestion }) {
                 ))}
               </Select>
             </FormControl>
-            <FormControl sx={{ width: '50%' }}>
+            <FormControl sx={{ width: isSmallScreen ? '50%' : 280 }}>
               <InputLabel sx={{ minWidth: 'auto', bgcolor: 'white', px: 0.5 }}><Search size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学期</InputLabel>
               <Select
                 value={selectedSemester}
@@ -115,7 +121,7 @@ function Home({ questions, deleteQuestion }) {
             </FormControl>
           </Box>
           {!isSmallScreen && (
-            <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+            <Box sx={{ display: 'flex', gap: 1, flexShrink: 0, ml: 'auto' }}>
               {viewMode === 'table' ? (
                 <Button
                   variant="contained"
@@ -219,11 +225,14 @@ function Home({ questions, deleteQuestion }) {
                   const subjectInfo = subjects.find(s => s.value === question.subject) || subjects[0];
                   return (
                     <TableRow key={question._id || question.id}>
-                      <TableCell sx={{ padding: isSmallScreen ? 1.5 : 'inherit' }}>
+                      <TableCell sx={{ 
+                        padding: isSmallScreen ? 1.5 : 'inherit'
+                      }}>
                         <Chip
                           label={isSmallScreen ? subjectInfo.label.charAt(0) : subjectInfo.label}
                           size="small"
                           className={`subject-chip ${subjectInfo.color}`}
+                          sx={{ ml: 0.5 }}
                         />
                       </TableCell>
                       <TableCell sx={{ 
