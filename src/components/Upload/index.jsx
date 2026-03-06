@@ -188,7 +188,7 @@ function Upload({ addQuestion }) {
           'Content-Type': 'application/json',
           'x-auth-token': token
         },
-        body: JSON.stringify({
+      body: JSON.stringify({
           subject: formData.subject,
           question: formData.question,
           correctAnswer: formData.correctAnswer,
@@ -198,7 +198,8 @@ function Upload({ addQuestion }) {
           questionType: formData.questionType,
           grade: formData.grade,
           semester: formData.semester,
-          userId: user?.id
+          userId: user?.id,
+          imageUrl: preview || ''
         }),
       });
 

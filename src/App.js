@@ -259,34 +259,9 @@ const MainApp = () => {
     }
   }, [logout]);
 
-  // 添加问题
-  const addQuestion = async (newQuestion) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/questions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token
-        },
-        body: JSON.stringify(newQuestion),
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          logout();
-          throw new Error('请先登录');
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const addedQuestion = await response.json();
-      setQuestions([addedQuestion, ...questions]);
-      return addedQuestion;
-    } catch (err) {
-      console.error('添加问题失败:', err);
-      throw err;
-    }
+  // 添加问题到本地列表（API调用已在Upload页面完成）
+  const addQuestion = (newQuestion) => {
+    setQuestions([newQuestion, ...questions]);
   };
 
   // 更新问题
