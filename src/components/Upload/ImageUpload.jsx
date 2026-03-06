@@ -1,8 +1,9 @@
 import React from 'react';
-import { Box, Typography, Button, Paper, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Box, Typography, Button, Paper } from '@mui/material';
 import { Upload as UploadIcon } from 'lucide-react';
 import { LLM_MODELS } from '../../utils/constants';
 import OcrOverlay from '../OcrOverlay';
+import ClaySelect from '../ClaySelect';
 
 function ImageUpload({ file, preview, onFileChange, onRemove, selectedModel, onModelChange, onOCR, loading, ocrResult }) {
   const handleFileChange = (e) => {
@@ -79,24 +80,20 @@ function ImageUpload({ file, preview, onFileChange, onRemove, selectedModel, onM
               alignItems: 'center'
             }}
           >
-            <FormControl sx={{ minWidth: { xs: 120, sm: 150 } }}>
-              <InputLabel sx={{ bgcolor: 'white', px: 0.5 }}>AI模型</InputLabel>
-              <Select
-                value={selectedModel}
-                label="AI模型"
-                onChange={(e) => onModelChange(e.target.value)}
-                sx={{ minWidth: { xs: 120, sm: 150 }, height: 40 }}
-              >
-                {LLM_MODELS.map(m => (
-                  <MenuItem key={m.value} value={m.value}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: m.color }} />
-                      {m.label}
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <ClaySelect
+              label="AI模型"
+              value={selectedModel}
+              onChange={(e) => onModelChange(e.target.value)}
+              options={LLM_MODELS}
+              width={{ xs: 120, sm: 150 }}
+              showAllOption={false}
+              renderOption={(option) => (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: option.color }} />
+                  {option.label}
+                </Box>
+              )}
+            />
             <Button
               variant="contained"
               onClick={onOCR}

@@ -22,10 +22,174 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:500
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: '#0891B2',
+      light: '#22D3EE',
+      dark: '#164E63',
     },
     secondary: {
-      main: '#dc004e',
+      main: '#059669',
+      light: '#34D399',
+      dark: '#064E3B',
+    },
+    background: {
+      default: '#ECFEFF',
+      paper: '#FFFFFF',
+    },
+    text: {
+      primary: '#164E63',
+      secondary: '#0E7490',
+    },
+  },
+  typography: {
+    fontFamily: '"Baloo 2", "Comic Neue", cursive, sans-serif',
+    h1: { fontWeight: 700 },
+    h2: { fontWeight: 600 },
+    h3: { fontWeight: 600 },
+    h4: { fontWeight: 600 },
+    h5: { fontWeight: 500 },
+    h6: { fontWeight: 500 },
+  },
+  shape: {
+    borderRadius: 20,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          padding: '10px 24px',
+          fontWeight: 600,
+          boxShadow: '0 4px 12px rgba(8, 145, 178, 0.25)',
+          transition: 'all 0.2s ease-out',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: '0 6px 16px rgba(8, 145, 178, 0.35)',
+          },
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 24,
+          border: '3px solid rgba(255, 255, 255, 0.8)',
+          boxShadow: 
+            '8px 8px 16px rgba(8, 145, 178, 0.15), -8px -8px 16px rgba(255, 255, 255, 0.9), inset 2px 2px 4px rgba(255, 255, 255, 0.5), inset -2px -2px 4px rgba(8, 145, 178, 0.1)',
+          transition: 'all 0.2s ease-out',
+          '&:hover': {
+            transform: 'translateY(-4px)',
+            boxShadow: 
+              '12px 12px 24px rgba(8, 145, 178, 0.2), -12px -12px 24px rgba(255, 255, 255, 0.95), inset 3px 3px 6px rgba(255, 255, 255, 0.6), inset -3px -3px 6px rgba(8, 145, 178, 0.15)',
+          },
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 20,
+          border: '2px solid rgba(255, 255, 255, 0.6)',
+          boxShadow: 
+            '6px 6px 12px rgba(8, 145, 178, 0.12), -6px -6px 12px rgba(255, 255, 255, 0.85)',
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 16,
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            boxShadow: 'inset 2px 2px 4px rgba(8, 145, 178, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8)',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              boxShadow: 'inset 3px 3px 6px rgba(8, 145, 178, 0.15), inset -3px -3px 6px rgba(255, 255, 255, 0.9)',
+            },
+            '&.Mui-focused': {
+              boxShadow: 'inset 4px 4px 8px rgba(8, 145, 178, 0.2), inset -4px -4px 8px rgba(255, 255, 255, 0.95)',
+            },
+          },
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          borderRadius: '0 0 20px 20px',
+          border: '3px solid rgba(255, 255, 255, 0.8)',
+          boxShadow: '0 4px 16px rgba(8, 145, 178, 0.15)',
+        },
+      },
+    },
+    MuiSelect: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          backgroundColor: 'rgba(240, 253, 250, 0.9)',
+          boxShadow: 'inset 2px 2px 4px rgba(8, 145, 178, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8)',
+          transition: 'all 0.2s ease',
+          '&:hover': {
+            boxShadow: 'inset 3px 3px 6px rgba(8, 145, 178, 0.15), inset -3px -3px 6px rgba(255, 255, 255, 0.9)',
+          },
+          '&.Mui-focused': {
+            boxShadow: 'inset 4px 4px 8px rgba(8, 145, 178, 0.2), inset -4px -4px 8px rgba(255, 255, 255, 0.95)',
+          },
+        },
+      },
+    },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 16,
+          border: '2px solid rgba(255, 255, 255, 0.8)',
+          background: 'linear-gradient(145deg, #ffffff, #f0fdfa)',
+          boxShadow: '8px 8px 16px rgba(8, 145, 178, 0.15), -8px -8px 16px rgba(255, 255, 255, 0.9)',
+          marginTop: 8,
+        },
+      },
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          margin: '4px 8px',
+          padding: '10px 16px',
+          transition: 'all 0.15s ease',
+          '&:hover': {
+            backgroundColor: 'rgba(8, 145, 178, 0.1)',
+            boxShadow: '2px 2px 4px rgba(8, 145, 178, 0.1), -2px -2px 4px rgba(255, 255, 255, 0.6)',
+          },
+          '&.Mui-selected': {
+            backgroundColor: 'rgba(8, 145, 178, 0.15)',
+            '&:hover': {
+              backgroundColor: 'rgba(8, 145, 178, 0.2)',
+            },
+          },
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          backgroundColor: 'rgba(240, 253, 250, 0.9)',
+          boxShadow: 'inset 2px 2px 4px rgba(8, 145, 178, 0.1), inset -2px -2px 4px rgba(255, 255, 255, 0.8)',
+          '&:hover': {
+            boxShadow: 'inset 3px 3px 6px rgba(8, 145, 178, 0.15), inset -3px -3px 6px rgba(255, 255, 255, 0.9)',
+          },
+          '&.Mui-focused': {
+            boxShadow: 'inset 4px 4px 8px rgba(8, 145, 178, 0.2), inset -4px -4px 8px rgba(255, 255, 255, 0.95)',
+          },
+        },
+      },
     },
   },
 });

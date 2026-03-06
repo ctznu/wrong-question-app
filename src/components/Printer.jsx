@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Button, Box, FormControl, InputLabel, Select, MenuItem, Card, CardContent, Checkbox, FormControlLabel, Paper, Chip, Alert, Collapse, Snackbar } from '@mui/material';
+import { Container, Typography, Button, Box, Card, CardContent, Checkbox, FormControlLabel, Paper, Chip, Alert, Collapse, Snackbar } from '@mui/material';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { Download, Printer as PrinterIcon, Filter, BookOpen, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import ClaySelect from './ClaySelect';
 
 const API_BASE_URL = 'http://localhost:5001/api';
 
@@ -463,37 +464,27 @@ function Printer({ questions }) {
             </Typography>
 
             <Box sx={{ display: 'flex', gap: 1, mb: 3, width: '100%' }}>
-              <FormControl sx={{ width: { xs: '50%', sm: 150 } }}>
-                <InputLabel sx={{ minWidth: 'auto', bgcolor: 'white', px: 0.5 }}><Filter size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学科</InputLabel>
-                <Select
-                  value={selectedSubject}
-                  label="选择学科"
-                  onChange={(e) => setSelectedSubject(e.target.value)}
-                  sx={{ width: '100%' }}
-                >
-                  <MenuItem value="">全部学科</MenuItem>
-                  {subjects.map(s => (
-                    <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <FormControl sx={{ width: { xs: '50%', sm: 150 } }}>
-                <InputLabel sx={{ minWidth: 'auto', bgcolor: 'white', px: 0.5 }}><BookOpen size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学期</InputLabel>
-                <Select
-                  value={selectedSemester}
-                  label="选择学期"
-                  onChange={(e) => setSelectedSemester(e.target.value)}
-                  sx={{ width: '100%' }}
-                >
-                  <MenuItem value="">全部学期</MenuItem>
-                  {semesters.map(s => {
-                    const [grade, semesterType] = s.split('-');
-                    return (
-                      <MenuItem key={s} value={s}>{getGradeLabel(grade)}-{semesterType}</MenuItem>
-                    );
-                  })}
-                </Select>
-              </FormControl>
+              <ClaySelect
+                label="选择学科"
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                options={subjects}
+                icon={<><Filter size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /></>}
+                width={{ xs: '50%', sm: 150 }}
+                allLabel="全部"
+              />
+              <ClaySelect
+                label="选择学期"
+                value={selectedSemester}
+                onChange={(e) => setSelectedSemester(e.target.value)}
+                options={semesters.map(s => {
+                  const [grade, semesterType] = s.split('-');
+                  return { value: s, label: `${getGradeLabel(grade)}-${semesterType}` };
+                })}
+                icon={<><BookOpen size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /></>}
+                width={{ xs: '50%', sm: 150 }}
+                allLabel="全部"
+              />
             </Box>
 
             <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Button, Card, CardContent, CardActions, Chip, Select, MenuItem, FormControl, InputLabel, Box, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, useMediaQuery, useTheme, IconButton, Menu } from '@mui/material';
+import { Container, Typography, Button, Card, CardContent, CardActions, Chip, Box, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, useMediaQuery, useTheme, IconButton, Menu, MenuItem } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { Search, Filter, LayoutGrid, LayoutList, MoreVertical } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getGradeLabel, formatSemester, getSemesterOptions } from '../utils/formatters';
+import ClaySelect from './ClaySelect';
 
 const subjects = [
   { value: 'chinese', label: '语文', color: 'chinese-chip' },
@@ -82,43 +83,27 @@ function Home({ questions, deleteQuestion }) {
             flex: 1,
             width: isSmallScreen ? '100%' : 'auto'
           }}>
-            <FormControl sx={{ width: isSmallScreen ? '50%' : 280 }}>
-              <InputLabel sx={{ minWidth: 'auto', bgcolor: 'white', px: 0.5 }}><Filter size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学科</InputLabel>
-              <Select
-                value={selectedSubject}
-                label="选择学科"
-                onChange={(e) => setSelectedSubject(e.target.value)}
-                sx={{ width: '100%' }}
-              >
-                <MenuItem value="">
-                  <em>全部学科</em>
-                </MenuItem>
-                {subjects.map(subject => (
-                  <MenuItem key={subject.value} value={subject.value}>
-                    {subject.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl sx={{ width: isSmallScreen ? '50%' : 280 }}>
-              <InputLabel sx={{ minWidth: 'auto', bgcolor: 'white', px: 0.5 }}><Search size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /> 选择学期</InputLabel>
-              <Select
-                value={selectedSemester}
-                label="选择学期"
-                onChange={(e) => setSelectedSemester(e.target.value)}
-                sx={{ width: '100%' }}
-              >
-                <MenuItem value="">
-                  <em>全部学期</em>
-                </MenuItem>
-                {semesters.map(semester => {
-                  const [grade, semesterType] = semester.split('-');
-                  return (
-                    <MenuItem key={semester} value={semester}>{getGradeLabel(grade)}-{semesterType}</MenuItem>
-                  );
-                })}
-              </Select>
-            </FormControl>
+            <ClaySelect
+              label="选择学科"
+              value={selectedSubject}
+              onChange={(e) => setSelectedSubject(e.target.value)}
+              options={subjects}
+              icon={<><Filter size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /></>}
+              width={isSmallScreen ? '50%' : 280}
+              allLabel="全部"
+            />
+            <ClaySelect
+              label="选择学期"
+              value={selectedSemester}
+              onChange={(e) => setSelectedSemester(e.target.value)}
+              options={semesters.map(s => {
+                const [grade, semesterType] = s.split('-');
+                return { value: s, label: `${getGradeLabel(grade)}-${semesterType}` };
+              })}
+              icon={<><Search size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /></>}
+              width={isSmallScreen ? '50%' : 280}
+              allLabel="全部"
+            />
           </Box>
           {!isSmallScreen && (
             <Box sx={{ display: 'flex', gap: 1, flexShrink: 0, ml: 'auto' }}>

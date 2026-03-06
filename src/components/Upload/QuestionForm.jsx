@@ -1,8 +1,9 @@
 import React from 'react';
-import { TextField, FormControl, InputLabel, Select, MenuItem, Box, Typography, Stack, InputAdornment, IconButton, Checkbox, FormControlLabel } from '@mui/material';
+import { TextField, Box, Typography, Stack, InputAdornment, IconButton, Checkbox, FormControlLabel } from '@mui/material';
 import { SUBJECTS } from '../../utils/constants';
-import { getSemesterOptions } from '../../utils/formatters';
+import { getSemesterOptions, getGradeLabel } from '../../utils/formatters';
 import { X } from 'lucide-react';
+import ClaySelect from '../ClaySelect';
 
 function QuestionForm({ formData, onChange, user }) {
   const [focusedField, setFocusedField] = React.useState('');
@@ -34,35 +35,25 @@ function QuestionForm({ formData, onChange, user }) {
           justifyContent: 'flex-start'
         }}
       >
-        <FormControl sx={{ minWidth: 120 }}>
-          <InputLabel sx={{ bgcolor: 'white', px: 0.5 }}>学科 *</InputLabel>
-          <Select
-            value={formData.subject}
-            label="学科 *"
-            onChange={handleFieldChange('subject')}
-            sx={{ minWidth: 120, height: 40 }}
-          >
-            {SUBJECTS.map(s => (
-              <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel sx={{ bgcolor: 'white', px: 0.5 }}>学期</InputLabel>
-          <Select
-            value={formData.semester}
-            label="学期"
-            onChange={handleFieldChange('semester')}
-            sx={{ minWidth: 150, height: 40 }}
-          >
-            {semesters.map(s => {
-              const [grade, semesterType] = s.split('-');
-              return (
-                <MenuItem key={s} value={s}>{grade}年级-{semesterType}</MenuItem>
-              );
-            })}
-          </Select>
-        </FormControl>
+        <ClaySelect
+          label="学科 *"
+          value={formData.subject}
+          onChange={handleFieldChange('subject')}
+          options={SUBJECTS}
+          width={140}
+          showAllOption={false}
+        />
+        <ClaySelect
+          label="学期"
+          value={formData.semester}
+          onChange={handleFieldChange('semester')}
+          options={semesters.map(s => {
+            const [grade, semesterType] = s.split('-');
+            return { value: s, label: `${getGradeLabel(grade)}-${semesterType}` };
+          })}
+          width={180}
+          showAllOption={false}
+        />
       </Box>
 
       {/* 题目内容单独占一行 */}

@@ -1,35 +1,35 @@
 import React from 'react';
-import { Button, Box, CircularProgress, Stack, FormControl, InputLabel, Select, MenuItem, Typography } from '@mui/material';
+import { Button, Box, CircularProgress, Stack, Typography } from '@mui/material';
 import { Scan } from 'lucide-react';
 import { LLM_MODELS } from '../../utils/constants';
+import ClaySelect from '../ClaySelect';
 
 function OcrButtons({ loading, loadingType, selectedModel, onModelChange, onZhipuOCR, onTongyiOCR, onHunyuanOCR, onOllamaOCR }) {
   return (
     <Box sx={{ mt: 2, textAlign: 'center' }}>
-      <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel>选择AI模型</InputLabel>
-        <Select
+      <Box sx={{ mb: 2 }}>
+        <ClaySelect
+          label="选择AI模型"
           value={selectedModel}
           onChange={(e) => onModelChange(e.target.value)}
-          label="选择AI模型"
-        >
-          {LLM_MODELS.map(model => (
-            <MenuItem key={model.value} value={model.value}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: '50%',
-                    backgroundColor: model.color
-                  }}
-                />
-                <Typography variant="body2">{model.label}</Typography>
-              </Box>
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+          options={LLM_MODELS}
+          width="100%"
+          showAllOption={false}
+          renderOption={(option) => (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                sx={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: '50%',
+                  backgroundColor: option.color
+                }}
+              />
+              <Typography variant="body2">{option.label}</Typography>
+            </Box>
+          )}
+        />
+      </Box>
       
       <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
         点击下方按钮开始识别
