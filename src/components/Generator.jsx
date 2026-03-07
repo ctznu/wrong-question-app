@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Button, Box, Alert, Paper, Checkbox, IconButton, Snackbar } from '@mui/material';
+import { Container, Typography, Button, Box, Alert, Paper, Checkbox, IconButton, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { PlusCircle, Printer, Trash2 } from 'lucide-react';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
@@ -8,6 +8,7 @@ function Generator() {
   const [generatedQuestions, setGeneratedQuestions] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState(new Set());
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, questionId: null });
 
   useEffect(() => {
     fetchGeneratedQuestions();
@@ -58,9 +59,18 @@ function Generator() {
 
       if (response.ok) {
         setGeneratedQuestions(generatedQuestions.filter(q => q._id !== questionId));
+        setSnackbar({ open: true, message: '删除成功', severity: 'success' });
       }
     } catch (err) {
       console.error('删除题目失败:', err);
+      setSnackbar({ open: true, message: '删除失败', severity: 'error' });
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteDialog.questionId) {
+      deleteQuestion(deleteDialog.questionId);
+      setDeleteDialog({ open: false, questionId: null });
     }
   };
 
@@ -173,7 +183,7 @@ function Generator() {
                         )}
                       </Box>
                       <IconButton
-                        onClick={() => deleteQuestion(q._id)}
+                        onClick={() => setDeleteDialog({ open: true, questionId: q._id })}
                         size="small"
                         sx={{ ml: 1 }}
                       >
@@ -202,6 +212,27 @@ function Generator() {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      <Dialog
+        open={deleteDialog.open}
+        onClose={() => setDeleteDialog({ open: false, questionId: null })}
+        maxWidth="xs"
+      >
+        <DialogTitle>删除确认</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1">
+            确定要删除这道生成的题目吗？此操作不可恢复。
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialog({ open: false, questionId: null })}>
+            取消
+          </Button>
+          <Button variant="contained" color="error" onClick={handleDeleteConfirm}>
+            删除
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

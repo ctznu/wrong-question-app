@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Button, Card, CardContent, CardActions, Chip, Box, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, useMediaQuery, useTheme, IconButton, Menu, MenuItem } from '@mui/material';
+import { Container, Typography, Button, Card, CardContent, CardActions, Chip, Box, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, useMediaQuery, useTheme, IconButton, Menu, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { Search, Filter, LayoutGrid, LayoutList, MoreVertical } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,6 +24,7 @@ function Home({ questions, deleteQuestion }) {
   });
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, questionId: null });
 
   // 获取所有唯一标签
   const allTags = [...new Set(questions.flatMap(q => q.tags || []).filter(tag => tag && tag.trim()))].sort();
@@ -71,9 +72,20 @@ function Home({ questions, deleteQuestion }) {
     // Navigation will be handled by the Link component in the menu item
   };
 
+  const handleDeleteClick = (questionId) => {
+    setDeleteDialog({ open: true, questionId });
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteDialog.questionId) {
+      deleteQuestion(deleteDialog.questionId);
+      setDeleteDialog({ open: false, questionId: null });
+    }
+  };
+
   const handleDeleteQuestion = () => {
     if (selectedQuestionId) {
-      deleteQuestion(selectedQuestionId);
+      setDeleteDialog({ open: true, questionId: selectedQuestionId });
       handleMenuClose();
     }
   };
@@ -196,7 +208,7 @@ function Home({ questions, deleteQuestion }) {
                       <Button
                         size="small"
                         color="error"
-                        onClick={() => deleteQuestion(question._id || question.id)}
+                        onClick={() => handleDeleteClick(question._id || question.id)}
                         variant="outlined"
                         sx={{ flex: 1, whiteSpace: 'nowrap' }}
                       >
@@ -292,7 +304,7 @@ function Home({ questions, deleteQuestion }) {
                             <Button
                               size="small"
                               color="error"
-                              onClick={() => deleteQuestion(question._id || question.id)}
+                              onClick={() => handleDeleteClick(question._id || question.id)}
                               variant="outlined"
                             >
                               删除
@@ -342,6 +354,27 @@ function Home({ questions, deleteQuestion }) {
             删除
           </MenuItem>
         </Menu>
+
+        <Dialog
+          open={deleteDialog.open}
+          onClose={() => setDeleteDialog({ open: false, questionId: null })}
+          maxWidth="xs"
+        >
+          <DialogTitle>删除确认</DialogTitle>
+          <DialogContent>
+            <Typography variant="body1">
+              确定要删除这道错题吗？此操作不可恢复。
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteDialog({ open: false, questionId: null })}>
+              取消
+            </Button>
+            <Button variant="contained" color="error" onClick={handleDeleteConfirm}>
+              删除
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
   );
 }
