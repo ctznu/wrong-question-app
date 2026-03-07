@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Typography, Button, Box, Alert, Paper, Checkbox, IconButton, Snackbar } from '@mui/material';
 import { PlusCircle, Printer, Trash2 } from 'lucide-react';
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
 
 function Generator() {
   const [generatedQuestions, setGeneratedQuestions] = useState([]);
