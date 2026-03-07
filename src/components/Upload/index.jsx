@@ -40,18 +40,23 @@ function Upload({ addQuestion }) {
     // 重置表单数据和OCR结果，避免显示之前的内容
     setOcrError('');
     setOcrResult(null);
-    setFormData({
-      subject: '',
-      semester: '',
-      question: '',
-      correctAnswer: '',
-      wrongAnswer: '',
-      reason: '',
-      tags: [],
-      questionType: '',
-      difficulty: 'medium',
-      grade: '',
-      semesterType: '1'
+    
+    // 使用函数式更新，确保获取最新的状态
+    setFormData(prev => {
+      console.log('[handleFileChange] 重置前的 prev:', prev);
+      return {
+        subject: '',
+        semester: prev.semester, // 使用 prev.semester 保留当前学期值
+        question: '',
+        correctAnswer: '',
+        wrongAnswer: '',
+        reason: '',
+        tags: [],
+        questionType: '',
+        difficulty: 'medium',
+        grade: '',
+        semesterType: '1'
+      };
     });
   };
 
@@ -77,35 +82,46 @@ function Upload({ addQuestion }) {
 
   const handleOCRWithModel = async (model) => {
     if (!file) return;
+    
+    // 保存当前的学期值，避免被重置
+    const currentSemester = formData.semester;
+    console.log('[handleOCRWithModel] 保存的学期值:', currentSemester);
+    console.log('[handleOCRWithModel] formData:', formData);
+    
     setLoading(true);
     setLoadingType(model);
     setOcrError('');
     setOcrResult(null);
-    setFormData({
-      subject: '',
-      semester: '',
-      question: '',
-      correctAnswer: '',
-      wrongAnswer: '',
-      reason: '',
-      tags: [],
-      questionType: '',
-      difficulty: 'medium',
-      grade: '',
-      semesterType: '1'
+    
+    // 使用函数式更新，确保获取最新的状态
+    setFormData(prev => {
+      console.log('[handleOCRWithModel] 重置前的 prev:', prev);
+      return {
+        subject: '',
+        semester: prev.semester, // 使用 prev.semester 而不是 currentSemester
+        question: '',
+        correctAnswer: '',
+        wrongAnswer: '',
+        reason: '',
+        tags: [],
+        questionType: '',
+        difficulty: 'medium',
+        grade: '',
+        semesterType: '1'
+      };
     });
     
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('model', model);
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('model', model);
       
       // 从环境变量获取 OCR 服务器地址，或使用默认值
       const ocrServerUrl = process.env.REACT_APP_OCR_SERVER_URL || 'http://localhost:5000';
       
       const resp = await fetch(`${ocrServerUrl}/analyze`, {
         method: 'POST',
-        body: formData,
+        body: uploadFormData,
       });
       const data = await resp.json();
       
@@ -115,13 +131,9 @@ function Upload({ addQuestion }) {
       } else {
         setOcrResult(data);
         
-
-
-
-
-
-
-
+        console.log('[handleOCRWithModel] OCR返回的数据:', data);
+        console.log('[handleOCRWithModel] data.semester:', data.semester);
+        console.log('[handleOCRWithModel] data.grade:', data.grade);
         
         const subjectMap = { 'math': 'math', 'chinese': 'chinese', 'english': 'english' };
         if (data.subject && subjectMap[data.subject]) {
@@ -130,16 +142,8 @@ function Upload({ addQuestion }) {
         
         if (data.grade) {
         }
-        if (data.semester) {
-          const combinedSemester = data.grade ? `${data.grade}-${data.semester}` : data.semester;
-
-
-          setFormData(prev => ({ ...prev, semester: combinedSemester }));
-        } else if (user?.currentGrade) {
-          const calculatedSemester = getCurrentSemester(user.currentGrade);
-
-          setFormData(prev => ({ ...prev, semester: calculatedSemester }));
-        }
+        // 不使用OCR返回的学期值，学期由前端根据用户年级和当前日期自动计算
+        // 学期值已经在初始化时设置好，不需要更新
         
         if (data.question) setFormData(prev => ({ ...prev, question: data.question }));
         if (data.correctAnswer) setFormData(prev => ({ ...prev, correctAnswer: data.correctAnswer }));
