@@ -21,8 +21,12 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['student', 'parent', 'teacher'],
+    enum: ['student', 'parent', 'teacher', 'admin'],
     default: 'parent'
+  },
+  allowedModels: {
+    type: [String],
+    default: ['zhipu'] // 家长默认只有智谱大模型
   },
   studentName: {
     type: String,

@@ -73,7 +73,8 @@ router.post('/register', async (req, res) => {
       username,
       email,
       password,
-      role: role || 'parent'
+      role: role || 'parent',
+      allowedModels: role === 'admin' ? ['zhipu', 'tongyi', 'hunyuan', 'ollama'] : ['zhipu'] // 管理员默认拥有所有模型
     });
 
     await user.save();

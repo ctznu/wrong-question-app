@@ -3,14 +3,15 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-ro
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AppBar, Toolbar, Typography, Button, Container, CircularProgress, Alert, Box } from '@mui/material';
-import { LogOut as LogOutIcon, BookOpen as BookOpenIcon, Home as HomeIcon, Upload as UploadIcon, Lightbulb as LightbulbIcon, Printer as PrinterIcon, BarChart as BarChartIcon, Settings as SettingsIcon } from 'lucide-react';
+import { LogOut as LogOutIcon, BookOpen as BookOpenIcon, Home as HomeIcon, Upload as UploadIcon, Lightbulb as LightbulbIcon, Printer as PrinterIcon, BarChart as BarChartIcon, Settings as SettingsIcon, Users as UsersIcon } from 'lucide-react';
 import Home from './components/Home';
-import Upload from './components/Upload/index';
+import Upload from './components/Upload';
 import QuestionDetail from './components/QuestionDetail';
 import Generator from './components/Generator';
 import Printer from './components/Printer';
 import Statistics from './components/Statistics';
 import Settings from './components/Settings';
+import Admin from './components/Admin';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -562,6 +563,35 @@ const MainApp = () => {
                 >
                   设置
                 </Button>
+                {user?.role === 'admin' && (
+                  <Button 
+                    color="inherit" 
+                    component={Link} 
+                    to="/admin" 
+                    size="small" 
+                    startIcon={<UsersIcon size={16} />}
+                    sx={{ 
+                      whiteSpace: 'nowrap', 
+                      minWidth: { xs: '48px', sm: 'auto' },
+                      padding: { xs: '8px', sm: '8px 16px' },
+                      '& .MuiButton-startIcon': {
+                        display: 'flex',
+                        margin: { xs: 0, sm: '0 8px 0 0' }
+                      },
+                      '& .MuiButton-label': {
+                        display: 'flex',
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      },
+                      '& .MuiButton-text': {
+                        display: { xs: 'none', sm: 'inline' }
+                      }
+                    }} 
+                  >
+                    管理员
+                  </Button>
+                )}
                 <Button
                   color="inherit"
                   onClick={logout}
@@ -678,6 +708,11 @@ const MainApp = () => {
         <Route path="/settings" element={
           <ProtectedRoute>
             <Settings />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <Admin />
           </ProtectedRoute>
         } />
         <Route path="/login" element={<Login />} />

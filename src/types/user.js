@@ -3,12 +3,16 @@
  */
 export const USER_ROLES = {
   STUDENT: 'student',
-  PARENT: 'parent'
+  PARENT: 'parent',
+  TEACHER: 'teacher',
+  ADMIN: 'admin'
 };
 
 export const USER_ROLE_LABELS = {
   student: '学生',
-  parent: '家长'
+  parent: '家长',
+  teacher: '教师',
+  admin: '管理员'
 };
 
 /**

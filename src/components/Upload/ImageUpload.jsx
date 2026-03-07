@@ -4,8 +4,15 @@ import { Upload as UploadIcon } from 'lucide-react';
 import { LLM_MODELS } from '../../utils/constants';
 import OcrOverlay from '../OcrOverlay';
 import ClaySelect from '../ClaySelect';
+import { useAuth } from '../../contexts/AuthContext';
 
 function ImageUpload({ file, preview, onFileChange, onRemove, selectedModel, onModelChange, onOCR, loading, ocrResult }) {
+  const { user } = useAuth();
+  
+  // 获取用户被允许使用的模型
+  const allowedModels = user?.allowedModels || ['zhipu'];
+  const filteredModels = LLM_MODELS.filter(model => allowedModels.includes(model.value));
+
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
@@ -84,7 +91,7 @@ function ImageUpload({ file, preview, onFileChange, onRemove, selectedModel, onM
               label="AI模型"
               value={selectedModel}
               onChange={(e) => onModelChange(e.target.value)}
-              options={LLM_MODELS}
+              options={filteredModels}
               width={{ xs: 120, sm: 150 }}
               showAllOption={false}
               renderOption={(option) => (

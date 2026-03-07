@@ -2,15 +2,22 @@ import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { LLM_MODELS } from '../../utils/constants';
 import ClaySelect from '../ClaySelect';
+import { useAuth } from '../../contexts/AuthContext';
 
 function ModelSelector({ selectedModel, onModelChange }) {
+  const { user } = useAuth();
+  
+  // 获取用户被允许使用的模型
+  const allowedModels = user?.allowedModels || ['zhipu'];
+  const filteredModels = LLM_MODELS.filter(model => allowedModels.includes(model.value));
+
   return (
     <Box sx={{ mb: 2 }}>
       <ClaySelect
         label="AI模型"
         value={selectedModel}
         onChange={(e) => onModelChange(e.target.value)}
-        options={LLM_MODELS}
+        options={filteredModels}
         width="100%"
         showAllOption={false}
         renderOption={(option) => (

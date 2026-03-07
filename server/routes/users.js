@@ -41,13 +41,14 @@ router.get('/:id', async (req, res) => {
 // @access  Admin or authenticated user
 router.put('/:id', async (req, res) => {
   try {
-    const { username, email, role } = req.body;
+    const { username, email, role, allowedModels } = req.body;
 
     // Build user object
     const userFields = {};
     if (username) userFields.username = username;
     if (email) userFields.email = email;
     if (role) userFields.role = role;
+    if (allowedModels) userFields.allowedModels = allowedModels;
 
     const user = await User.findByIdAndUpdate(
       req.params.id,
