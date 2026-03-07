@@ -2,8 +2,10 @@ const Question = require('../models/Question');
 
 const getStatistics = async (req, res) => {
   try {
-    const questions = await Question.find({}, {
-      subject: 1, questionType: 1, grade: 1, semester: 1, createdAt: 1
+    const userId = req.user.id;
+    const questions = await Question.find({ userId }, {
+      subject: 1, questionType: 1, grade: 1, semester: 1, createdAt: 1,
+      tags: 1, difficulty: 1, errorType: 1, isWrong: 1
     });
 
     const totalQuestions = questions.length;
@@ -27,6 +29,24 @@ const getStatistics = async (req, res) => {
       return acc;
     }, {});
 
+    const questionsByDifficulty = questions.reduce((acc, q) => {
+      const difficulty = q.difficulty || 'medium';
+      acc[difficulty] = (acc[difficulty] || 0) + 1;
+      return acc;
+    }, {});
+
+    const questionsByErrorType = questions.reduce((acc, q) => {
+      const errorType = q.errorType || 'none';
+      acc[errorType] = (acc[errorType] || 0) + 1;
+      return acc;
+    }, {});
+
+    const questionsByQuestionType = questions.reduce((acc, q) => {
+      const type = q.questionType || 'short_answer';
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {});
+
     const monthlyGrowth = [];
     const now = new Date();
     for (let i = 0; i < 6; i++) {
@@ -42,12 +62,19 @@ const getStatistics = async (req, res) => {
       });
     }
 
+    const wrongQuestions = questions.filter(q => q.isWrong);
+    const wrongRate = totalQuestions > 0 ? (wrongQuestions.length / totalQuestions * 100).toFixed(2) : 0;
+
     res.json({
       totalQuestions,
       questionsBySubject,
       questionsBySemester,
       questionsByTag,
-      monthlyGrowth
+      questionsByDifficulty,
+      questionsByErrorType,
+      questionsByQuestionType,
+      monthlyGrowth,
+      wrongRate
     });
   } catch (error) {
     console.error('获取统计数据失败:', error);
@@ -57,7 +84,8 @@ const getStatistics = async (req, res) => {
 
 const getSubjectDistribution = async (req, res) => {
   try {
-    const questions = await Question.find({}, {
+    const userId = req.user.id;
+    const questions = await Question.find({ userId }, {
       subject: 1, questionType: 1, grade: 1, semester: 1, createdAt: 1
     });
 
@@ -77,7 +105,8 @@ const getSubjectDistribution = async (req, res) => {
 
 const getSemesterDistribution = async (req, res) => {
   try {
-    const questions = await Question.find({}, {
+    const userId = req.user.id;
+    const questions = await Question.find({ userId }, {
       subject: 1, questionType: 1, grade: 1, semester: 1, createdAt: 1
     });
 
@@ -97,7 +126,8 @@ const getSemesterDistribution = async (req, res) => {
 
 const getTagDistribution = async (req, res) => {
   try {
-    const questions = await Question.find({}, {
+    const userId = req.user.id;
+    const questions = await Question.find({ userId }, {
       subject: 1, questionType: 1, grade: 1, semester: 1, createdAt: 1, tags: 1
     });
 
@@ -121,7 +151,8 @@ const getTagDistribution = async (req, res) => {
 
 const getMonthlyTrend = async (req, res) => {
   try {
-    const questions = await Question.find({}, {
+    const userId = req.user.id;
+    const questions = await Question.find({ userId }, {
       subject: 1, questionType: 1, grade: 1, semester: 1, createdAt: 1
     });
 
@@ -149,10 +180,79 @@ const getMonthlyTrend = async (req, res) => {
   }
 };
 
+const getDifficultyDistribution = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const questions = await Question.find({ userId }, {
+      difficulty: 1
+    });
+
+    const distribution = questions.reduce((acc, q) => {
+      const difficulty = q.difficulty || 'medium';
+      acc[difficulty] = (acc[difficulty] || 0) + 1;
+      return acc;
+    }, {});
+
+    res.json({
+      distribution
+    });
+  } catch (error) {
+    console.error('获取难度分布失败:', error);
+    res.status(500).json({ error: '获取难度分布失败' });
+  }
+};
+
+const getErrorTypeDistribution = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const questions = await Question.find({ userId }, {
+      isWrong: 1, errorType: 1
+    });
+
+    const distribution = {};
+    questions.forEach(q => {
+      const errorType = q.errorType || 'none';
+      distribution[errorType] = (distribution[errorType] || 0) + 1;
+    });
+
+    res.json({
+      distribution
+    });
+  } catch (error) {
+    console.error('获取错误类型分布失败:', error);
+    res.status(500).json({ error: '获取错误类型分布失败' });
+  }
+};
+
+const getQuestionTypeDistribution = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const questions = await Question.find({ userId }, {
+      questionType: 1
+    });
+
+    const distribution = questions.reduce((acc, q) => {
+      const type = q.questionType || 'short_answer';
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {});
+
+    res.json({
+      distribution
+    });
+  } catch (error) {
+    console.error('获取题目类型分布失败:', error);
+    res.status(500).json({ error: '获取题目类型分布失败' });
+  }
+};
+
 module.exports = {
   getStatistics,
   getSubjectDistribution,
   getSemesterDistribution,
   getTagDistribution,
-  getMonthlyTrend
+  getMonthlyTrend,
+  getDifficultyDistribution,
+  getErrorTypeDistribution,
+  getQuestionTypeDistribution
 };

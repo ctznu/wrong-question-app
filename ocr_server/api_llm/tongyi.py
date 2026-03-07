@@ -16,9 +16,10 @@ class TongyiLLM(BaseAPILM):
     def __init__(self):
         super().__init__()
         self.api_key = os.getenv('TONGYI_API_KEY', '')
-        self.base_url = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
+        # 通义千问 API 端点
+        self.base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
         self.vision_model = os.getenv('TONGYI_VISION_MODEL', 'qwen-vl-plus')
-        self.analysis_model = os.getenv('TONGYI_VISION_MODEL', 'qwen-plus')
+        self.analysis_model = os.getenv('TONGYI_ANALYSIS_MODEL', 'qwen-plus')
 
     def is_available(self) -> bool:
         return bool(self.api_key)
@@ -60,19 +61,26 @@ class TongyiLLM(BaseAPILM):
 
         prompt = "识别图片中的所有文字，区分手写体和印刷体。手写体是学生答案，印刷体是题目。只输出识别到的文字，不做任何推理、补充、添加或修改。绝对不要添加'三角形'、'条'、'个'、'道'等额外词汇。"
 
+        # 通义千问兼容模式 API 格式（OpenAI 兼容格式）
         data = {
             'model': self.vision_model,
-            'input': {
-                'messages': [
-                    {
-                        'role': 'user',
-                        'content': [
-                            {'type': 'image', 'image': f'data:image/jpeg;base64,{image_base64}'},
-                            {'type': 'text', 'text': prompt}
-                        ]
-                    }
-                ]
-            }
+            'messages': [
+                {
+                    'role': 'user',
+                    'content': [
+                        {
+                            'type': 'image_url',
+                            'image_url': {
+                                'url': f'data:image/jpeg;base64,{image_base64}'
+                            }
+                        },
+                        {
+                            'type': 'text',
+                            'text': prompt
+                        }
+                    ]
+                }
+            ]
         }
 
         for retry in range(self.max_retries):
@@ -86,12 +94,19 @@ class TongyiLLM(BaseAPILM):
                     continue
 
                 if response.status_code != 200:
-                    raise Exception(f"通义千问 API error: {response.status_code}")
+                    error_detail = ''
+                    try:
+                        error_data = response.json()
+                        error_detail = f" - {error_data.get('message', str(error_data))}"
+                    except:
+                        error_detail = f" - {response.text[:200]}"
+                    raise Exception(f"通义千问 API error: {response.status_code}{error_detail}")
 
                 result = response.json()
-                content = result.get('output', {}).get('choices', [{}])[0].get('message', {}).get('content', [{}])[0].get('text', '')
+                # 通义千问兼容模式响应格式：choices[0].message.content
+                content = result.get('choices', [{}])[0].get('message', {}).get('content', '')
                 
-                print(f'[TongyiLLM] 识别到的文字: {content[:200]}')
+                print(f'[TongyiLLM] 识别到的文字：{content[:200]}')
                 return content
             except Exception as e:
                 if retry == self.max_retries - 1:
@@ -185,18 +200,15 @@ class TongyiLLM(BaseAPILM):
             'Content-Type': 'application/json'
         }
 
+        # 通义千问兼容模式 API 格式（OpenAI 兼容格式）
         data = {
             'model': self.analysis_model,
-            'input': {
-                'messages': [
-                    {
-                        'role': 'user',
-                        'content': [
-                            {'type': 'text', 'text': prompt}
-                        ]
-                    }
-                ]
-            }
+            'messages': [
+                {
+                    'role': 'user',
+                    'content': prompt
+                }
+            ]
         }
 
         for retry in range(self.max_retries):
@@ -210,12 +222,19 @@ class TongyiLLM(BaseAPILM):
                     continue
 
                 if response.status_code != 200:
-                    raise Exception(f"通义千问 API error: {response.status_code}")
+                    error_detail = ''
+                    try:
+                        error_data = response.json()
+                        error_detail = f" - {error_data.get('message', str(error_data))}"
+                    except:
+                        error_detail = f" - {response.text[:200]}"
+                    raise Exception(f"通义千问 API error: {response.status_code}{error_detail}")
 
                 result = response.json()
-                content = result.get('output', {}).get('choices', [{}])[0].get('message', {}).get('content', [{}])[0].get('text', '')
+                # 通义千问兼容模式响应格式：choices[0].message.content
+                content = result.get('choices', [{}])[0].get('message', {}).get('content', '')
                 
-                print(f'[TongyiLLM] API 原始响应: {content[:500]}')
+                print(f'[TongyiLLM] API 原始响应：{content[:500]}')
                 
                 content = content.strip()
                 if content.startswith('```'):
@@ -228,14 +247,14 @@ class TongyiLLM(BaseAPILM):
                     try:
                         parsed = json.loads(json_match.group())
                         parsed['raw_response'] = content
-                        print(f'[TongyiLLM] 解析成功: {parsed}')
+                        print(f'[TongyiLLM] 解析成功：{parsed}')
                         return parsed
                     except json.JSONDecodeError as e:
-                        print(f'[TongyiLLM] JSON 解析失败: {e}')
-                        print(f'[TongyiLLM] JSON 内容: {json_match.group()}')
+                        print(f'[TongyiLLM] JSON 解析失败：{e}')
+                        print(f'[TongyiLLM] JSON 内容：{json_match.group()}')
                         return {
                             'raw_response': content,
-                            'error': f'JSON 解析失败: {str(e)}'
+                            'error': f'JSON 解析失败：{str(e)}'
                         }
                 
                 return {
@@ -289,35 +308,22 @@ class TongyiLLM(BaseAPILM):
         error_reason = question_data.get('error_reason', '')
         prompt = get_similar_question_prompt(question_text, error_type, error_reason)
 
+        # 通义千问兼容模式 API 格式
         data = {
-            'model': self.model,
-            'input': {
-                'messages': [
-                    {
-                        'role': 'user',
-                        'content': [
-                            {'type': 'text', 'text': prompt}
-                        ]
-                    }
-                ]
-            }
+            'model': self.analysis_model,
+            'messages': [
+                {
+                    'role': 'user',
+                    'content': prompt
+                }
+            ]
         }
 
         result = self._make_request(self.base_url, headers, data)
-        content = result.get('output', {}).get('choices', [{}])[0].get('message', {}).get('content', [])
-        
-        # 处理 content 可能是列表的情况
-        text_content = ''
-        if isinstance(content, list):
-            for item in content:
-                if isinstance(item, dict) and item.get('type') == 'text':
-                    text_content += item.get('text', '')
-        elif isinstance(content, dict) and content.get('type') == 'text':
-            text_content = content.get('text', '')
-        else:
-            text_content = str(content)
+        # 通义千问兼容模式响应格式：choices[0].message.content
+        content = result.get('choices', [{}])[0].get('message', {}).get('content', '')
 
-        json_match = self._parse_json_response(text_content)
+        json_match = self._parse_json_response(content)
         if 'error' not in json_match:
             return json_match
 

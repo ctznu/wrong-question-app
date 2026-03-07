@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Paper, Grid, Card, CardContent, LinearProgress, Chip } from '@mui/material';
-import { BarChart, PieChart, TrendingUp, Calendar, BookOpen } from 'lucide-react';
-import { Bar } from 'react-chartjs-2';
-import { Pie } from 'react-chartjs-2';
+import { BarChart, PieChart, TrendingUp, Calendar, BookOpen, Award } from 'lucide-react';
+import { Bar, Pie, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -26,13 +25,52 @@ ChartJS.register(
 
 const API_BASE_URL = 'http://localhost:5001/api';
 
+const DIFFICULTY_LABELS = {
+  easy: '简单',
+  medium: '中等',
+  hard: '困难'
+};
+
+const QUESTION_TYPE_LABELS = {
+  single_choice: '单选题',
+  multiple_choice: '多选题',
+  fill_blank: '填空题',
+  short_answer: '简答题',
+  essay: '作文题'
+};
+
+const SUBJECT_LABELS = {
+  chinese: '语文',
+  math: '数学',
+  english: '英语',
+  unknown: '其他'
+};
+
+const SEMESTER_LABELS = {
+  '1-1': '一年级上',
+  '1-2': '一年级下',
+  '2-1': '二年级上',
+  '2-2': '二年级下',
+  '3-1': '三年级上',
+  '3-2': '三年级下',
+  '4-1': '四年级上',
+  '4-2': '四年级下',
+  '5-1': '五年级上',
+  '5-2': '五年级下',
+  '6-1': '六年级上',
+  '6-2': '六年级下',
+};
+
 function Statistics() {
   const [stats, setStats] = useState({
     totalQuestions: 0,
     questionsBySubject: {},
     questionsBySemester: {},
     questionsByTag: {},
-    monthlyGrowth: []
+    questionsByDifficulty: {},
+    questionsByQuestionType: {},
+    monthlyGrowth: [],
+    wrongRate: 0
   });
   const [loading, setLoading] = useState(false);
 
@@ -44,10 +82,16 @@ function Statistics() {
     setLoading(true);
     
     try {
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['x-auth-token'] = token;
+      }
+
       const response = await fetch(`${API_BASE_URL}/statistics`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {
@@ -56,6 +100,16 @@ function Statistics() {
       }
 
       const data = await response.json();
+      
+      // 计算薄弱学科
+      let weakSubject = '无';
+      if (data.questionsBySubject && Object.keys(data.questionsBySubject).length > 0) {
+        const entries = Object.entries(data.questionsBySubject);
+        const maxEntry = entries.reduce((max, curr) => curr[1] > max[1] ? curr : max, entries[0]);
+        weakSubject = SUBJECT_LABELS[maxEntry[0]] || maxEntry[0];
+      }
+      data.weakSubject = weakSubject;
+      
       setStats(data);
     } catch (err) {
       console.error('获取统计数据失败:', err);
@@ -66,7 +120,7 @@ function Statistics() {
 
   // 图表配置
   const barChartData = {
-    labels: Object.keys(stats.questionsBySubject),
+    labels: Object.keys(stats.questionsBySubject).map(key => SUBJECT_LABELS[key] || key),
     datasets: [
       {
         label: '题目数量',
@@ -87,17 +141,25 @@ function Statistics() {
   };
 
   const pieChartData = {
-    labels: Object.keys(stats.questionsBySemester),
+    labels: Object.keys(stats.questionsBySemester).map(key => SEMESTER_LABELS[key] || key),
     datasets: [
       {
         data: Object.values(stats.questionsBySemester),
         backgroundColor: [
           'rgba(255, 206, 86, 0.6)',
           'rgba(153, 102, 255, 0.6)',
+          'rgba(54, 162, 235, 0.6)',
+          'rgba(255, 99, 132, 0.6)',
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(255, 159, 64, 0.6)',
         ],
         borderColor: [
           'rgba(255, 206, 86, 1)',
           'rgba(153, 102, 255, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 99, 132, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(255, 159, 64, 1)',
         ],
         borderWidth: 1,
       },
@@ -126,6 +188,63 @@ function Statistics() {
       title: {
         display: true,
         text: '各学期题目分布',
+      },
+    },
+  };
+
+  const difficultyData = {
+    labels: Object.keys(stats.questionsByDifficulty).map(key => DIFFICULTY_LABELS[key] || key),
+    datasets: [
+      {
+        data: Object.values(stats.questionsByDifficulty),
+        backgroundColor: [
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(255, 206, 86, 0.6)',
+          'rgba(255, 99, 132, 0.6)',
+        ],
+        borderColor: [
+          'rgba(75, 192, 192, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(255, 99, 132, 1)',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const questionTypeData = {
+    labels: Object.keys(stats.questionsByQuestionType).map(key => QUESTION_TYPE_LABELS[key] || key),
+    datasets: [
+      {
+        data: Object.values(stats.questionsByQuestionType),
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.6)',
+          'rgba(54, 162, 235, 0.6)',
+          'rgba(255, 206, 86, 0.6)',
+          'rgba(75, 192, 192, 0.6)',
+          'rgba(153, 102, 255, 0.6)',
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const doughnutOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: '题目难度分布',
       },
     },
   };
@@ -214,6 +333,19 @@ function Statistics() {
                 </CardContent>
               </Card>
             </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ textAlign: 'center', height: '100%' }}>
+                <CardContent>
+                  <Award size={40} color="#f44336" style={{ marginBottom: '10px' }} />
+                  <Typography variant="h4" component="div">
+                    {stats.weakSubject || '无'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    薄弱学科
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
           </Grid>
 
           {/* 图表区域 */}
@@ -228,6 +360,30 @@ function Statistics() {
                 <Pie data={pieChartData} options={pieOptions} />
               </Paper>
             </Grid>
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 2, height: '100%' }}>
+                <Doughnut data={difficultyData} options={doughnutOptions} />
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 2, height: '100%' }}>
+                <Doughnut 
+                  data={questionTypeData} 
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: {
+                        position: 'top',
+                      },
+                      title: {
+                        display: true,
+                        text: '题目类型分布',
+                      },
+                    },
+                  }} 
+                />
+              </Paper>
+            </Grid>
           </Grid>
 
           {/* 标签分布 */}
@@ -237,14 +393,18 @@ function Statistics() {
               标签分布
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {Object.entries(stats.questionsByTag).map(([tag, count]) => (
-                <Chip
-                  key={tag}
-                  label={`${tag} (${count})`}
-                  variant="outlined"
-                  sx={{ m: 0.5 }}
-                />
-              ))}
+              {Object.keys(stats.questionsByTag).length === 0 ? (
+                <Typography variant="body2" color="text.secondary">暂无标签</Typography>
+              ) : (
+                Object.entries(stats.questionsByTag).map(([tag, count]) => (
+                  <Chip
+                    key={tag}
+                    label={`${tag} (${count})`}
+                    variant="outlined"
+                    sx={{ m: 0.5 }}
+                  />
+                ))
+              )}
             </Box>
           </Paper>
 
