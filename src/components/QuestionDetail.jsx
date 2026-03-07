@@ -2,30 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Typography, Button, Box, TextField, Card, CardContent, Paper, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Alert, Snackbar, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, Stack } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Edit3, Save, X, ArrowLeft, Lightbulb, Loader2, CheckCircle } from 'lucide-react';
-
-const getGradeLabel = (grade) => {
-  const gradeMap = {
-    '1': '一年级',
-    '2': '二年级',
-    '3': '三年级',
-    '4': '四年级',
-    '5': '五年级',
-    '6': '六年级'
-  };
-  return gradeMap[grade] || grade;
-};
-
-const formatSemester = (semester) => {
-  if (!semester) return semester;
-  const [grade, semesterType] = semester.split('-');
-  return `${getGradeLabel(grade)}-${semesterType}`;
-};
+import { useAuth } from '../contexts/AuthContext';
+import { getGradeLabel, formatSemester, getSemesterOptions } from '../utils/formatters';
 
 
 
 function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [question, setQuestion] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedQuestion, setEditedQuestion] = useState({});
@@ -37,6 +22,8 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [deleteDialog, setDeleteDialog] = useState({ open: false, question: null, index: null });
   const [generateCount, setGenerateCount] = useState(1);
+
+  const semesters = getSemesterOptions(user?.currentGrade);
 
   const handleTagChange = (tag, checked) => {
     const currentTags = editedQuestion.tags || [];
@@ -229,6 +216,29 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     placeholder="请输入错误原因分析..."
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
                   />
+                </Box>
+                {/* 学期选择器 */}
+                <Box sx={{ mb: 2 }}>
+                  <FormControl sx={{ width: 200 }}>
+                    <InputLabel sx={{ bgcolor: 'white', px: 0.5 }}>学期</InputLabel>
+                    <Select
+                      value={editedQuestion.semester || ''}
+                      label="学期"
+                      onChange={(e) => setEditedQuestion({ ...editedQuestion, semester: e.target.value })}
+                    >
+                      <MenuItem value="">
+                        <em>未选择</em>
+                      </MenuItem>
+                      {semesters.map(semester => {
+                        const [grade, semesterType] = semester.split('-');
+                        return (
+                          <MenuItem key={semester} value={semester}>
+                            {getGradeLabel(grade)}-{semesterType}
+                          </MenuItem>
+                        );
+                      })}
+                    </Select>
+                  </FormControl>
                 </Box>
                 {/* 错误类型单独占一行，支持多选，在移动设备上改为垂直排列 */}
                 <Box sx={{ mb: 3 }}>
