@@ -94,18 +94,20 @@ function QuestionForm({ formData, onChange, user }) {
         />
       </Box>
 
-      {/* 正确答案和错误答案 - 响应式布局 */}
+      {/* 正确答案和解析 - 响应式布局 */}
       <Box 
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
           gap: 2, 
-          mb: 2
+          mb: 3
         }}
       >
         <TextField
-          fullWidth
+          sx={{ flex: 1 }}
           label="正确答案 *"
+          multiline
+          rows={{ xs: 5, sm: 4 }}
           value={formData.correctAnswer}
           onChange={handleFieldChange('correctAnswer')}
           placeholder="请输入正确答案..."
@@ -136,8 +138,55 @@ function QuestionForm({ formData, onChange, user }) {
           onBlur={() => setFocusedField('correctAnswer')}
         />
         <TextField
-          fullWidth
+          sx={{ flex: 3 }}
+          label="解析"
+          multiline
+          rows={{ xs: 5, sm: 4 }}
+          value={formData.explanation || ''}
+          onChange={handleFieldChange('explanation')}
+          placeholder="请输入题目解析（包含推理步骤）..."
+          InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
+          InputProps={{
+            endAdornment: formData.explanation && (
+              <InputAdornment position="end">
+                <IconButton 
+                  onClick={() => onChange('explanation', '')} 
+                  edge="end"
+                  sx={{ 
+                    opacity: focusedField === 'explanation' ? 1 : 0,
+                    transition: 'opacity 0.2s',
+                    '&:hover': {
+                      opacity: 1,
+                      bgcolor: 'rgba(0, 0, 0, 0.04)'
+                    }
+                  }}
+                  onMouseEnter={() => setFocusedField('explanation')}
+                  onMouseLeave={() => setFocusedField('')}
+                >
+                  <X size={16} />
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
+          onFocus={() => setFocusedField('explanation')}
+          onBlur={() => setFocusedField('explanation')}
+        />
+      </Box>
+
+      {/* 错误答案和错误原因 - 响应式布局 */}
+      <Box 
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: 2, 
+          mb: 3
+        }}
+      >
+        <TextField
+          sx={{ flex: 1 }}
           label="错误答案"
+          multiline
+          rows={{ xs: 5, sm: 4 }}
           value={formData.wrongAnswer}
           onChange={handleFieldChange('wrongAnswer')}
           placeholder="请输入学生的错误答案..."
@@ -167,12 +216,8 @@ function QuestionForm({ formData, onChange, user }) {
           onFocus={() => setFocusedField('wrongAnswer')}
           onBlur={() => setFocusedField('wrongAnswer')}
         />
-      </Box>
-
-      {/* 错误原因单独占一行 */}
-      <Box sx={{ mb: 3 }}>
         <TextField
-          fullWidth
+          sx={{ flex: 3 }}
           label="错误原因"
           multiline
           rows={{ xs: 5, sm: 4 }}

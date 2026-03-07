@@ -137,7 +137,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
   return (
     <Container maxWidth="md" className="app-main-container" sx={{ px: { xs: 0, sm: 2 } }}>
       <Container maxWidth="md" sx={{ mt: 2, px: { xs: 0, sm: 2 } }}>
-        <Paper className="detail-card" sx={{ mx: { xs: 0, sm: 'auto' } }}>
+        <Paper className="detail-card" sx={{ mx: { xs: 0, sm: 'auto' }, bgcolor: '#ffffff' }}>
           <CardContent className="detail-card-content" sx={{ px: { xs: 1, sm: 2 } }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mb: 3 }}>
               <Button
@@ -183,11 +183,12 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
                   />
                 </Box>
-                {/* 正确答案和错误答案放在一行，各占50%，在移动设备上改为垂直排列 */}
+                {/* 正确答案和解析 - 响应式布局 */}
                 <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2 }}>
                   <TextField
-                    fullWidth
                     label="正确答案"
+                    multiline
+                    rows={{ xs: 5, sm: 4 }}
                     value={editedQuestion.correctAnswer || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, correctAnswer: e.target.value })}
                     placeholder="请输入正确答案..."
@@ -195,26 +196,37 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     sx={{ flex: 1 }}
                   />
                   <TextField
-                    fullWidth
+                    label="解析"
+                    multiline
+                    rows={{ xs: 5, sm: 4 }}
+                    value={editedQuestion.explanation || ''}
+                    onChange={(e) => setEditedQuestion({ ...editedQuestion, explanation: e.target.value })}
+                    placeholder="请输入题目解析（包含推理步骤）..."
+                    InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
+                    sx={{ flex: 3 }}
+                  />
+                </Box>
+                {/* 错误答案和错误原因 - 响应式布局 */}
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 2 }}>
+                  <TextField
                     label="错误答案"
+                    multiline
+                    rows={{ xs: 5, sm: 4 }}
                     value={editedQuestion.wrongAnswer || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, wrongAnswer: e.target.value })}
                     placeholder="请输入错误答案..."
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
                     sx={{ flex: 1 }}
                   />
-                </Box>
-                {/* 错误原因单独占一行 */}
-                <Box sx={{ mb: 2 }}>
                   <TextField
-                    fullWidth
                     label="错误原因"
                     multiline
-                    rows={{ xs: 3, md: 4 }}
+                    rows={{ xs: 5, sm: 4 }}
                     value={editedQuestion.reason || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, reason: e.target.value })}
                     placeholder="请输入错误原因分析..."
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
+                    sx={{ flex: 3 }}
                   />
                 </Box>
                 {/* 学期选择器 */}
@@ -304,9 +316,9 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   </Box>
                 )}
 
-                {/* 正确答案和错误答案在移动设备上改为垂直排列 */}
-                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mt: 1 }}>
-                  <Box sx={{ flex: 1 }}>
+                {/* 正确答案和解析 - 响应式布局 */}
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mt: 1, bgcolor: '#ffffff' }}>
+                  <Box sx={{ flex: 1, bgcolor: '#ffffff' }}>
                     <Typography variant="body2" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
                       <strong>正确答案：</strong>
                     </Typography>
@@ -314,7 +326,19 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                       {question.correctAnswer}
                     </Typography>
                   </Box>
-                  <Box sx={{ flex: 1 }}>
+                  <Box sx={{ flex: 3, bgcolor: '#ffffff' }}>
+                    <Typography variant="body2" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
+                      <strong>解析：</strong>
+                    </Typography>
+                    <Typography variant="body2" paragraph sx={{ whiteSpace: 'pre-line' }}>
+                      {question.explanation || '暂无解析'}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* 错误答案和错误原因 - 响应式布局 */}
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mt: 1, bgcolor: '#ffffff' }}>
+                  <Box sx={{ flex: 1, bgcolor: '#ffffff' }}>
                     <Typography variant="body2" color="error" gutterBottom sx={{ fontWeight: 'bold' }}>
                       <strong>错误答案：</strong>
                     </Typography>
@@ -322,14 +346,26 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                       {question.wrongAnswer}
                     </Typography>
                   </Box>
+                  <Box sx={{ flex: 3, bgcolor: '#ffffff' }}>
+                    <Typography variant="body2" color="text.primary" gutterBottom sx={{ fontWeight: 'bold' }}>
+                      <strong>错误原因：</strong>
+                    </Typography>
+                    <Typography variant="body2" paragraph>
+                      {question.reason || '暂无错误原因分析'}
+                    </Typography>
+                  </Box>
                 </Box>
 
-                <Typography variant="body2" gutterBottom sx={{ mt: 2, fontWeight: 'bold' }}>
-                  <strong>错误原因：</strong>
-                </Typography>
-                <Typography variant="body2" paragraph>
-                  {question.reason || '暂无错误原因分析'}
-                </Typography>
+                {question.reasoningSteps && (
+                  <Box sx={{ bgcolor: '#ffffff' }}>
+                    <Typography variant="body2" gutterBottom sx={{ mt: 2, fontWeight: 'bold' }}>
+                      <strong>推理步骤：</strong>
+                    </Typography>
+                    <Typography variant="body2" paragraph sx={{ whiteSpace: 'pre-line' }}>
+                      {question.reasoningSteps}
+                    </Typography>
+                  </Box>
+                )}
 
                 <Typography variant="body2" gutterBottom sx={{ mt: 2, fontWeight: 'bold' }}>
                   <strong>标签：</strong>

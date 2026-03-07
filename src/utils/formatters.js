@@ -49,13 +49,12 @@ export const getSemesterOptions = (currentGrade) => {
   if (!currentGrade) return [];
   
   const options = [];
+  const currentGradeNum = parseInt(currentGrade);
+  const maxGrade = 6;
   
-  for (let i = 0; i < 2; i++) {
-    const grade = parseInt(currentGrade) - i;
-    if (grade >= 1) {
-      options.push(`${grade}-上`);
-      options.push(`${grade}-下`);
-    }
+  for (let grade = currentGradeNum; grade <= maxGrade; grade++) {
+    options.push(`${grade}-上`);
+    options.push(`${grade}-下`);
   }
   
   return options;

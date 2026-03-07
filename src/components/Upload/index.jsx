@@ -152,6 +152,9 @@ function Upload({ addQuestion }) {
         } else {
         }
         if (data.errorReason) setFormData(prev => ({ ...prev, reason: data.errorReason }));
+        // 将推理步骤保存到 explanation 字段
+        if (data.reasoningSteps) setFormData(prev => ({ ...prev, explanation: data.reasoningSteps }));
+        if (data.explanation) setFormData(prev => ({ ...prev, explanation: data.explanation }));
         if (data.errorType && data.errorType !== 'none') {
           // 映射错误类型到中文标签
           const errorTypeMap = {
@@ -203,7 +206,8 @@ function Upload({ addQuestion }) {
           grade: formData.grade,
           semester: formData.semester,
           userId: user?.id,
-          imageUrl: preview || ''
+          imageUrl: preview || '',
+          explanation: formData.explanation
         }),
       });
 

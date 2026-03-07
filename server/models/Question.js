@@ -103,6 +103,12 @@ const questionSchema = new mongoose.Schema({
     default: ''
   },
 
+  // 推理步骤
+  reasoningSteps: {
+    type: String,
+    default: ''
+  },
+
   // OCR 识别的原始文本
   ocrRawText: {
     type: String,

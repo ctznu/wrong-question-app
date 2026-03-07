@@ -14,7 +14,9 @@ export const UploadProvider = ({ children }) => {
     questionType: '',
     difficulty: 'medium',
     grade: '',
-    semesterType: '1'
+    semesterType: '1',
+    reasoningSteps: '',
+    explanation: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -46,7 +48,9 @@ export const UploadProvider = ({ children }) => {
       questionType: '',
       difficulty: 'medium',
       grade: '',
-      semesterType: '1'
+      semesterType: '1',
+      reasoningSteps: '',
+      explanation: ''
     });
   };
 

@@ -80,7 +80,7 @@ router.get('/:id', auth, async (req, res) => {
 // @access  Private
 router.post('/', auth, async (req, res) => {
   try {
-    const { subject, semester, question, correctAnswer, wrongAnswer, reason, tags, imageUrl } = req.body;
+    const { subject, semester, question, correctAnswer, wrongAnswer, reason, tags, imageUrl, reasoningSteps, explanation } = req.body;
     
     const newQuestion = new Question({
       userId: req.user.id,
@@ -91,7 +91,9 @@ router.post('/', auth, async (req, res) => {
       wrongAnswer,
       reason,
       tags,
-      imageUrl
+      imageUrl,
+      reasoningSteps,
+      explanation
     });
     
     const savedQuestion = await newQuestion.save();
@@ -107,7 +109,7 @@ router.post('/', auth, async (req, res) => {
 // @access  Private
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { subject, semester, question, correctAnswer, wrongAnswer, reason, tags, imageUrl, similarQuestions } = req.body;
+    const { subject, semester, question, correctAnswer, wrongAnswer, reason, tags, imageUrl, similarQuestions, reasoningSteps, explanation } = req.body;
     
     const questionFields = {};
     if (subject) questionFields.subject = subject;
@@ -119,6 +121,8 @@ router.put('/:id', auth, async (req, res) => {
     if (tags) questionFields.tags = tags;
     if (imageUrl) questionFields.imageUrl = imageUrl;
     if (similarQuestions) questionFields.similarQuestions = similarQuestions;
+    if (reasoningSteps) questionFields.reasoningSteps = reasoningSteps;
+    if (explanation) questionFields.explanation = explanation;
     questionFields.updatedAt = Date.now();
     
     let updatedQuestion = await Question.findOneAndUpdate(
