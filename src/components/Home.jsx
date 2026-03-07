@@ -18,11 +18,15 @@ function Home({ questions, deleteQuestion }) {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('');
+  const [selectedTag, setSelectedTag] = useState('');
   const [viewMode, setViewMode] = useState(() => {
     return localStorage.getItem('viewMode') || (isSmallScreen ? 'table' : 'card');
   });
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
+
+  // 获取所有唯一标签
+  const allTags = [...new Set(questions.flatMap(q => q.tags || []).filter(tag => tag && tag.trim()))].sort();
 
   // 当屏幕尺寸变化时，自动切换视图模式
   useEffect(() => {
@@ -48,7 +52,8 @@ function Home({ questions, deleteQuestion }) {
 
   const filteredQuestions = questions.filter(q => {
     return (!selectedSubject || q.subject === selectedSubject) &&
-           (!selectedSemester || q.semester === selectedSemester);
+           (!selectedSemester || q.semester === selectedSemester) &&
+           (!selectedTag || (q.tags && q.tags.includes(selectedTag)));
   });
 
   const handleMenuOpen = (event, questionId) => {
@@ -89,7 +94,7 @@ function Home({ questions, deleteQuestion }) {
               onChange={(e) => setSelectedSubject(e.target.value)}
               options={subjects}
               icon={<><Filter size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /></>}
-              width={isSmallScreen ? '50%' : 280}
+              width={isSmallScreen ? '50%' : 200}
               allLabel="全部"
             />
             <ClaySelect
@@ -101,9 +106,20 @@ function Home({ questions, deleteQuestion }) {
                 return { value: s, label: `${getGradeLabel(grade)}-${semesterType}` };
               })}
               icon={<><Search size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /></>}
-              width={isSmallScreen ? '50%' : 280}
+              width={isSmallScreen ? '50%' : 200}
               allLabel="全部"
             />
+            {!isSmallScreen && (
+              <ClaySelect
+                label="选择标签"
+                value={selectedTag}
+                onChange={(e) => setSelectedTag(e.target.value)}
+                options={allTags.map(tag => ({ value: tag, label: tag }))}
+                icon={<><Search size={16} style={{verticalAlign: 'middle', marginRight: '6px'}} /></>}
+                width={200}
+                allLabel="全部"
+              />
+            )}
           </Box>
           {!isSmallScreen && (
             <Box sx={{ display: 'flex', gap: 1, flexShrink: 0, ml: 'auto' }}>
