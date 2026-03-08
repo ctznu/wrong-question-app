@@ -75,27 +75,26 @@ jobs:
           # Deploy frontend
           cd /tmp
           tar -xzf frontend.tar.gz
-          sudo rm -rf /usr/share/nginx/html/*
-          sudo cp -r build/* /usr/share/nginx/html/
-          sudo nginx -s reload
+          rm -rf /home/admin/html/*
+          cp -r build/* /home/admin/html/
           
           # Deploy backend
           tar -xzf backend.tar.gz
-          sudo rm -rf /opt/wrong-question-backend/*
-          sudo mkdir -p /opt/wrong-question-backend
-          sudo cp -r server/* /opt/wrong-question-backend/
+          rm -rf /home/admin/wrong-question-backend/*
+          mkdir -p /home/admin/wrong-question-backend
+          cp -r server/* /home/admin/wrong-question-backend/
           
           # Deploy OCR server
           tar -xzf ocr_server.tar.gz
-          sudo rm -rf /opt/ocr-server/*
-          sudo mkdir -p /opt/ocr-server
-          sudo cp -r ocr_server/* /opt/ocr-server/
+          rm -rf /home/admin/ocr-server/*
+          mkdir -p /home/admin/ocr-server
+          cp -r ocr_server/* /home/admin/ocr-server/
           
           # Create .env files for backend
           echo "MONGODB_URI=${{ secrets.MONGO_URI }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           PORT=5001
-          NODE_ENV=production" | sudo tee /opt/wrong-question-backend/.env
+          NODE_ENV=production" > /home/admin/wrong-question-backend/.env
           
           # Create .env files for OCR server
           echo "# Ollama 配置（优先使用本地 LLM）
@@ -138,14 +137,14 @@ jobs:
           # Flask 配置
           FLASK_APP=app.py
           FLASK_RUN_PORT=5002
-          FLASK_ENV=production" | sudo tee /opt/ocr-server/.env
+          FLASK_ENV=production" > /home/admin/ocr-server/.env
           
           # Install dependencies on server
-          cd /opt/wrong-question-backend
+          cd /home/admin/wrong-question-backend
           npm install --production
           npm install -g pm2
           
-          cd /opt/ocr-server
+          cd /home/admin/ocr-server
           pip3 install -r requirements.txt
           
           # Create pm2 ecosystem file
@@ -154,7 +153,7 @@ jobs:
             {
               name: 'backend-server',
               script: 'server.js',
-              cwd: '/opt/wrong-question-backend',
+              cwd: '/home/admin/wrong-question-backend',
               instances: 1,
               autorestart: true,
               watch: false,
@@ -167,7 +166,7 @@ jobs:
               name: 'ocr-server',
               script: 'python3',
               args: '-m flask run --host=0.0.0.0 --port=5002',
-              cwd: '/opt/ocr-server',
+              cwd: '/home/admin/ocr-server',
               instances: 1,
               autorestart: true,
               watch: false,
@@ -178,17 +177,17 @@ jobs:
               }
             }
           ]
-          }" > /opt/pm2-ecosystem.config.js
+          }" > /home/admin/pm2-ecosystem.config.js
           
           # Stop existing services if any
           pm2 stop all || true
           
           # Start services with pm2
-          pm2 start /opt/pm2-ecosystem.config.js
+          pm2 start /home/admin/pm2-ecosystem.config.js
           
           # Set pm2 to start on boot
           pm2 save
-          pm2 startup systemd -u ${{ secrets.SERVER_USERNAME }} --hp /home/${{ secrets.SERVER_USERNAME }}
+          pm2 startup systemd -u admin --hp /home/admin
           
           # Clean up
           rm -rf build server ocr_server frontend.tar.gz backend.tar.gz ocr_server.tar.gz
@@ -197,3 +196,4 @@ jobs:
           echo "Frontend: http://${{ secrets.SERVER_HOST }}"
           echo "Backend API: http://${{ secrets.SERVER_HOST }}:5001/api"
           echo "OCR Server: http://${{ secrets.SERVER_HOST }}:5002"
+          echo "All services are running under admin user"
