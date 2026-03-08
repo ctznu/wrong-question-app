@@ -1,0 +1,189 @@
+name: Deploy Full Stack to Aliyun
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install frontend dependencies
+      run: npm install
+      
+    - name: Build frontend
+      run: npm run build
+      env:
+        REACT_APP_API_BASE_URL: ${{ secrets.API_BASE_URL }}
+        REACT_APP_OCR_SERVER_URL: ${{ secrets.OCR_SERVER_URL }}
+        
+    - name: Install backend dependencies
+      run: npm install
+      working-directory: ./server
+      
+    - name: Install OCR server dependencies
+      run: pip install -r requirements.txt
+      working-directory: ./ocr_server
+      
+    - name: Pack frontend
+      run: tar -czf frontend.tar.gz build/
+      
+    - name: Pack backend
+      run: tar -czf backend.tar.gz server/
+      
+    - name: Pack OCR server
+      run: tar -czf ocr_server.tar.gz ocr_server/
+      
+    - name: Deploy files to server
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "frontend.tar.gz,backend.tar.gz,ocr_server.tar.gz"
+        target: "/tmp"
+        
+    - name: Execute deployment script
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Stop existing services
+          sudo systemctl stop wrong-question-backend || true
+          sudo systemctl stop ocr-server || true
+          
+          # Deploy frontend
+          cd /tmp
+          tar -xzf frontend.tar.gz
+          sudo rm -rf /usr/share/nginx/html/*
+          sudo cp -r build/* /usr/share/nginx/html/
+          sudo nginx -s reload
+          
+          # Deploy backend
+          tar -xzf backend.tar.gz
+          sudo rm -rf /opt/wrong-question-backend/*
+          sudo mkdir -p /opt/wrong-question-backend
+          sudo cp -r server/* /opt/wrong-question-backend/
+          
+          # Deploy OCR server
+          tar -xzf ocr_server.tar.gz
+          sudo rm -rf /opt/ocr-server/*
+          sudo mkdir -p /opt/ocr-server
+          sudo cp -r ocr_server/* /opt/ocr-server/
+          
+          # Create .env files for backend
+          echo "MONGODB_URI=${{ secrets.MONGO_URI }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          PORT=5001
+          NODE_ENV=production" | sudo tee /opt/wrong-question-backend/.env
+          
+          # Create .env files for OCR server
+          echo "# Ollama 配置（优先使用本地 LLM）
+          OLLAMA_BASE_URL=http://localhost:11434
+          OLLAMA_MODEL=qwen3-vl:30b
+          OLLAMA_TIMEOUT=60
+          
+          # 通义千问 API（备选方案）
+          TONGYI_API_KEY=${{ secrets.TONGYI_API_KEY }}
+          TONGYI_VISION_MODEL=qwen-vl-max
+          TONGYI_ANALYSIS_MODEL=qwen-math-plus
+          
+          # DeepSeek API（备选方案）
+          DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }}
+          
+          # 智谱 AI API
+          ZHIPU_API_KEY=${{ secrets.ZHIPU_API_KEY }}
+          ZHIPU_VISION_MODEL=glm-4.6v
+          ZHIPU_ANALYSIS_MODEL=glm-4.7
+          
+          # 腾讯混元视觉 API
+          HUNYUAN_API_KEY=${{ secrets.HUNYUAN_API_KEY }}
+          HUNYUAN_MODEL=hunyuan-vision
+          
+          # API 超时设置（秒）
+          API_TIMEOUT=60
+          
+          # 默认 LLM 选择
+          DEFAULT_LLM=zhipu
+          
+          # 图片处理配置
+          MAX_IMAGE_SIZE=10485760  # 10MB
+          IMAGE_QUALITY=95
+          
+          # 后端 API
+          BACKEND_API_URL=http://${{ secrets.SERVER_HOST }}:5001/api
+          
+          JWT_SECRET_KEY=${{ secrets.JWT_SECRET }}
+          
+          # Flask 配置
+          FLASK_APP=app.py
+          FLASK_RUN_PORT=5002
+          FLASK_ENV=production" | sudo tee /opt/ocr-server/.env
+          
+          # Install dependencies on server
+          cd /opt/wrong-question-backend
+          npm install --production
+          
+          cd /opt/ocr-server
+          pip3 install -r requirements.txt
+          
+          # Create systemd service files
+          echo "[Unit]
+          Description=Wrong Question Backend API
+          After=network.target
+          
+          [Service]
+          User=${{ secrets.SERVER_USERNAME }}
+          WorkingDirectory=/opt/wrong-question-backend
+          ExecStart=/usr/bin/node server.js
+          Restart=always
+          
+          [Install]
+          WantedBy=multi-user.target" | sudo tee /etc/systemd/system/wrong-question-backend.service
+          
+          echo "[Unit]
+          Description=OCR Server
+          After=network.target
+          
+          [Service]
+          User=${{ secrets.SERVER_USERNAME }}
+          WorkingDirectory=/opt/ocr-server
+          ExecStart=/usr/bin/python3 -m flask run --host=0.0.0.0
+          Restart=always
+          
+          [Install]
+          WantedBy=multi-user.target" | sudo tee /etc/systemd/system/ocr-server.service
+          
+          # Reload systemd and start services
+          sudo systemctl daemon-reload
+          sudo systemctl enable wrong-question-backend
+          sudo systemctl enable ocr-server
+          sudo systemctl start wrong-question-backend
+          sudo systemctl start ocr-server
+          
+          # Clean up
+          rm -rf build server ocr_server frontend.tar.gz backend.tar.gz ocr_server.tar.gz
+          
+          echo "Full stack deployment completed successfully!"
+          echo "Frontend: http://${{ secrets.SERVER_HOST }}"
+          echo "Backend API: http://${{ secrets.SERVER_HOST }}:5001/api"
+          echo "OCR Server: http://${{ secrets.SERVER_HOST }}:5002"
