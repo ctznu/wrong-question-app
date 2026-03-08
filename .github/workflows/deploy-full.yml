@@ -114,7 +114,7 @@ jobs:
           # 智谱 AI API
           ZHIPU_API_KEY=${{ secrets.ZHIPU_API_KEY }}
           ZHIPU_VISION_MODEL=glm-4.6v
-          ZHIPU_ANALYSIS_MODEL=glm-4.7
+          ZHIPU_ANALYSIS_MODEL=glm-4.7-flash
           
           # 腾讯混元视觉 API
           HUNYUAN_API_KEY=${{ secrets.HUNYUAN_API_KEY }}
