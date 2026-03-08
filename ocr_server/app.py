@@ -254,10 +254,12 @@ def generate_similar_question():
             'error_type': data.get('errorType', 'none'),
             'error_reason': data.get('errorReason', ''),
             'subject': data.get('subject', 'unknown'),
-            'question_type': data.get('questionType', 'short_answer')
+            'question_type': data.get('questionType', 'short_answer'),
+            'grade': data.get('grade', '')
         }
 
         print(f'[generate_similar_question] 生成类似题目: {question_data["question_text"][:50]}...')
+        print(f'[generate_similar_question] 学生年级: {question_data["grade"]}')
 
         api_llm = get_available_api_llm()
         if not api_llm:
@@ -308,10 +310,12 @@ def generate_similar_questions():
             'error_type': data.get('errorType', 'none'),
             'error_reason': data.get('errorReason', ''),
             'subject': data.get('subject', 'unknown'),
-            'question_type': data.get('questionType', 'short_answer')
+            'question_type': data.get('questionType', 'short_answer'),
+            'grade': data.get('grade', '')
         }
 
         print(f'[generate_similar_questions] 批量生成 {count} 道类似题目: {question_data["question_text"][:50]}...')
+        print(f'[generate_similar_questions] 学生年级: {question_data["grade"]}')
 
         api_llm = get_available_api_llm()
         if not api_llm:

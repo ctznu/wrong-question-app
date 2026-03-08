@@ -111,19 +111,29 @@ def get_analysis_prompt(ocr_text: str) -> str:
 只输出JSON。"""
 
 
-def get_similar_question_prompt(question_text: str, error_type: str, error_reason: str) -> str:
+def get_similar_question_prompt(question_text: str, error_type: str, error_reason: str, grade: str = '') -> str:
     """获取生成类似题目的提示词"""
+    grade_context = ""
+    if grade:
+        grade_labels = {
+            '1': '一年级', '2': '二年级', '3': '三年级',
+            '4': '四年级', '5': '五年级', '6': '六年级'
+        }
+        grade_label = grade_labels.get(str(grade), f'{grade}年级')
+        grade_context = f"学生年级：{grade_label}\n"
+    
     return f"""根据以下错题生成一道类似题目：
 
-原题：{question_text}
+{grade_context}原题：{question_text}
 错误类型：{error_type}
 错误原因：{error_reason}
 
 要求：
-1. 难度和原题相当
+1. 难度和原题相当，适合{grade_context.strip() if grade_context else '相应年级'}学生
 2. 针对错误原因设计
 3. 数字适当变化
 4. 确保计算正确
+5. **使用该年级学生能理解的知识和方法来解答，不要使用超出该年级范围的知识**
 
 输出JSON格式：
 {{

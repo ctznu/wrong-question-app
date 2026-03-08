@@ -145,7 +145,8 @@ class HunyuanLLM(BaseAPILM):
         question_text = question_data.get('question_text', '')
         error_type = question_data.get('error_type', '')
         error_reason = question_data.get('error_reason', '')
-        prompt = get_similar_question_prompt(question_text, error_type, error_reason)
+        grade = question_data.get('grade', '')
+        prompt = get_similar_question_prompt(question_text, error_type, error_reason, grade)
         
         headers = {
             'Authorization': f'Bearer {self.api_key}',

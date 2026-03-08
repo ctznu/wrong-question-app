@@ -306,7 +306,8 @@ class TongyiLLM(BaseAPILM):
         question_text = question_data.get('question_text', '')
         error_type = question_data.get('error_type', '')
         error_reason = question_data.get('error_reason', '')
-        prompt = get_similar_question_prompt(question_text, error_type, error_reason)
+        grade = question_data.get('grade', '')
+        prompt = get_similar_question_prompt(question_text, error_type, error_reason, grade)
 
         # 通义千问兼容模式 API 格式
         data = {

@@ -105,7 +105,8 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
           errorReason: question.reason,
           subject: question.subject,
           questionType: 'short_answer',
-          count: generateCount
+          count: generateCount,
+          grade: user?.currentGrade || ''
         }),
       });
 
