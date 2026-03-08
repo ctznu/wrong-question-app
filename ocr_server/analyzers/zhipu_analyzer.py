@@ -3,7 +3,11 @@ from typing import Dict, Optional
 from api_llm_client import ZhipuLLM
 
 class ZhipuAnalyzer(QuestionAnalyzer):
-    def analyze_question(self, ocr_text: str, image_path: Optional[str] = None) -> Dict:
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+    
+    def analyze_question(self, ocr_text: str, image_path: Optional[str] = None, **kwargs) -> Dict:
+        grade = kwargs.get('grade', '') or self.grade
         zhipu = ZhipuLLM()
         if not zhipu.is_available():
             return {
@@ -12,7 +16,7 @@ class ZhipuAnalyzer(QuestionAnalyzer):
                 'message': '请配置智谱AI API密钥以启用智能分析',
                 'llm_source': 'zhipu'
             }
-        raw_result = zhipu.analyze_question(ocr_text, image_path)
+        raw_result = zhipu.analyze_question(ocr_text, image_path, grade=grade)
         return self.parse_result(raw_result)
     
     def parse_result(self, raw_result: Dict, ocr_result: Optional[Dict] = None) -> Dict:

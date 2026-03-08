@@ -145,12 +145,21 @@ def get_similar_question_prompt(question_text: str, error_type: str, error_reaso
 只输出JSON。"""
 
 
-def get_generic_analysis_prompt(ocr_text: str) -> str:
+def get_generic_analysis_prompt(ocr_text: str, grade: str = '') -> str:
     """获取通用分析提示词"""
+    grade_context = ""
+    if grade:
+        grade_labels = {
+            '1': '一年级', '2': '二年级', '3': '三年级',
+            '4': '四年级', '5': '五年级', '6': '六年级'
+        }
+        grade_label = grade_labels.get(str(grade), f'{grade}年级')
+        grade_context = f"\n重要：学生是{grade_label}学生，解答时只能使用该年级范围内的知识和方法。\n"
+    
     return f"""请分析以下题目内容，返回 JSON 格式：
 
 {ocr_text}
-
+{grade_context}
 要求：
 1. 识别学科（语文、数学、英语）
 2. 识别题目类型（single_choice/short_answer）
@@ -160,8 +169,8 @@ def get_generic_analysis_prompt(ocr_text: str) -> str:
    - **还原题目本来的样子**：题目应该看起来像原题，包含括号、横线等占位符
 4. 提取选项（如果有）
 5. **基于题目内容准确计算出正确答案**
-     - 仔细分析题目要求，按照正确的运算顺序和计算方法进行计算
-     - **正确答案必须完全独立推理，绝对不能受学生答案影响**
+   - 仔细分析题目要求，按照正确的运算顺序和计算方法进行计算
+   - **正确答案必须完全独立推理，绝对不能受学生答案影响**
      - **对于几何题，要根据几何定义和性质推理**：
        - **三角形类型判断**：
          - 根据边的长度关系：两边相等→等腰三角形，三边相等→等边三角形，三边不等→不等边三角形

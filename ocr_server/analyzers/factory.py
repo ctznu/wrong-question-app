@@ -6,14 +6,14 @@ from .hunyuan_analyzer import HunyuanAnalyzer
 
 class AnalyzerFactory:
     @staticmethod
-    def get_analyzer(analyzer_type: str):
+    def get_analyzer(analyzer_type: str, **kwargs):
         if analyzer_type == 'zhipu':
-            return ZhipuAnalyzer()
+            return ZhipuAnalyzer(**kwargs)
         elif analyzer_type == 'ollama':
-            return OllamaAnalyzer()
+            return OllamaAnalyzer(**kwargs)
         elif analyzer_type == 'tongyi':
-            return TongyiAnalyzer()
+            return TongyiAnalyzer(**kwargs)
         elif analyzer_type == 'hunyuan':
-            return HunyuanAnalyzer()
+            return HunyuanAnalyzer(**kwargs)
         else:
-            return ZhipuAnalyzer()
+            return ZhipuAnalyzer(**kwargs)

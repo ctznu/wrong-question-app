@@ -37,7 +37,8 @@ class OllamaLLMClient:
 
     def analyze_question(self, ocr_text: str,
                        image_path: Optional[str] = None,
-                       model: Optional[str] = None) -> Dict:
+                       model: Optional[str] = None,
+                       grade: str = '') -> Dict:
         """
         智能分析题目
 
@@ -45,6 +46,7 @@ class OllamaLLMClient:
             ocr_text: OCR 识别的文本
             image_path: 图片路径（用于多模态分析）
             model: 指定模型名称
+            grade: 学生年级
 
         Returns:
             {
@@ -64,7 +66,7 @@ class OllamaLLMClient:
                 'explanation': str         # 题目解析
             }
         """
-        prompt = self._build_analysis_prompt(ocr_text)
+        prompt = self._build_analysis_prompt(ocr_text, grade=grade)
         model = model or self.default_model
 
         try:
@@ -81,12 +83,21 @@ class OllamaLLMClient:
                 'is_question': None
             }
 
-    def _build_analysis_prompt(self, ocr_text: str) -> str:
+    def _build_analysis_prompt(self, ocr_text: str, grade: str = '') -> str:
         """构建分析提示词"""
+        grade_context = ""
+        if grade:
+            grade_labels = {
+                '1': '一年级', '2': '二年级', '3': '三年级',
+                '4': '四年级', '5': '五年级', '6': '六年级'
+            }
+            grade_label = grade_labels.get(str(grade), f'{grade}年级')
+            grade_context = f"\n重要：学生是{grade_label}学生，解答时只能使用该年级范围内的知识和方法。\n"
+        
         return f"""你是一个小学错题分析老师，专门帮助小学生理解和纠正错题。请分析以下OCR识别的文字：
 
 {ocr_text}
-
+{grade_context}
 **重要要求：**
 1. 必须忠实地提取图片上的文字，不要修改、补充或猜测题目内容
 2. 如果有填空（ ），保持填空的形式，不要自己填写

@@ -28,9 +28,10 @@ class TongyiLLM(BaseAPILM):
         """获取文字识别提示词"""
         return "请识别图片中的所有文字，包括题目、选项、答案等。\n\n只输出识别到的文字内容，不要添加任何其他内容。\n\n如果没有识别到文字，就返回空字符串。"""
 
-    def analyze_question(self, ocr_text: str, image_path: Optional[str] = None) -> Dict:
+    def analyze_question(self, ocr_text: str, image_path: Optional[str] = None, grade: str = '') -> Dict:
         """分析题目：2次调用（识别+分析）"""
         print(f'[TongyiLLM] 开始分析...')
+        print(f'[TongyiLLM] 学生年级: {grade}')
 
         if not image_path:
             raise Exception("需要提供图片路径")
@@ -41,7 +42,7 @@ class TongyiLLM(BaseAPILM):
 
         # 第2次调用：分析题目和答案
         print(f'[TongyiLLM] 第2步：分析题目和答案，使用模型 {self.analysis_model}...')
-        analysis_result = self._analyze_text(ocr_result)
+        analysis_result = self._analyze_text(ocr_result, grade=grade)
 
         # 合并结果
         result = {**analysis_result, 'ocr_text': ocr_result}
@@ -191,9 +192,9 @@ class TongyiLLM(BaseAPILM):
             'raw_response': text_content
         }
 
-    def _analyze_text(self, ocr_text: str) -> Dict:
+    def _analyze_text(self, ocr_text: str, grade: str = '') -> Dict:
         """分析题目和答案"""
-        prompt = get_generic_analysis_prompt(ocr_text)
+        prompt = get_generic_analysis_prompt(ocr_text, grade=grade)
 
         headers = {
             'Authorization': f'Bearer {self.api_key}',

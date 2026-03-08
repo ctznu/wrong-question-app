@@ -4,7 +4,11 @@ from llm_client import get_available_llm
 import os
 
 class OllamaAnalyzer(QuestionAnalyzer):
-    def analyze_question(self, ocr_text: str, image_path: Optional[str] = None) -> Dict:
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+    
+    def analyze_question(self, ocr_text: str, image_path: Optional[str] = None, **kwargs) -> Dict:
+        grade = kwargs.get('grade', '') or self.grade
         ollama_llm = get_available_llm()
         # 从环境变量中读取模型配置
         model_name = os.getenv('OLLAMA_MODEL', 'qwen3-vl:30b')
@@ -15,7 +19,7 @@ class OllamaAnalyzer(QuestionAnalyzer):
                 'message': f'请确保 Ollama 服务已启动并已下载 {model_name} 模型',
                 'llm_source': 'ollama'
             }
-        raw_result = ollama_llm.analyze_question(ocr_text, image_path, model=model_name)
+        raw_result = ollama_llm.analyze_question(ocr_text, image_path, model=model_name, grade=grade)
         return self.parse_result(raw_result)
     
     def parse_result(self, raw_result: Dict, ocr_result: Optional[Dict] = None) -> Dict:

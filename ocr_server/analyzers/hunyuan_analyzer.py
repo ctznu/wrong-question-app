@@ -9,7 +9,11 @@ from api_llm_client import HunyuanLLM
 class HunyuanAnalyzer(QuestionAnalyzer):
     """腾讯混元视觉 API"""
     
-    def analyze_question(self, ocr_text: str, image_path: Optional[str] = None) -> Dict:
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+    
+    def analyze_question(self, ocr_text: str, image_path: Optional[str] = None, **kwargs) -> Dict:
+        grade = kwargs.get('grade', '') or self.grade
         hunyuan = HunyuanLLM()
         if not hunyuan.is_available():
             return {
@@ -18,7 +22,7 @@ class HunyuanAnalyzer(QuestionAnalyzer):
                 'message': '请配置腾讯混元 API 密钥',
                 'llm_source': 'hunyuan'
             }
-        raw_result = hunyuan.analyze_question(ocr_text, image_path)
+        raw_result = hunyuan.analyze_question(ocr_text, image_path, grade=grade)
         return self.parse_result(raw_result)
     
     def parse_result(self, raw_result: Dict, ocr_result: Optional[Dict] = None) -> Dict:

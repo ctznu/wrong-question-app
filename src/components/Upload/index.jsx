@@ -115,6 +115,7 @@ function Upload({ addQuestion }) {
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
       uploadFormData.append('model', model);
+      uploadFormData.append('grade', user?.currentGrade || '');
       
       // 从环境变量获取 OCR 服务器地址，或使用默认值
       const ocrServerUrl = process.env.REACT_APP_OCR_SERVER_URL || 'http://localhost:5000';

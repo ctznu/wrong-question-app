@@ -22,9 +22,10 @@ class ZhipuLLM(BaseAPILM):
     def is_available(self) -> bool:
         return bool(self.api_key)
 
-    def analyze_question(self, ocr_text: str, image_path: Optional[str] = None) -> Dict:
+    def analyze_question(self, ocr_text: str, image_path: Optional[str] = None, grade: str = '') -> Dict:
         """分析题目：2次调用（识别+分析）"""
         print(f'[ZhipuLLM] 开始分析...')
+        print(f'[ZhipuLLM] 学生年级: {grade}')
 
         if not image_path:
             raise Exception("需要提供图片路径")
@@ -40,7 +41,7 @@ class ZhipuLLM(BaseAPILM):
 
         # 第2次调用：分析题目和答案
         print(f'[ZhipuLLM] 第2步：分析题目和答案，使用模型 {self.analysis_model}...')
-        analysis_result = self._analyze_text(ocr_result)
+        analysis_result = self._analyze_text(ocr_result, grade=grade)
 
         # 合并结果
         result = {**analysis_result, 'ocr_text': ocr_result}
@@ -85,19 +86,21 @@ class ZhipuLLM(BaseAPILM):
         print(f'[ZhipuLLM] 识别到的文字: {content[:200]}')
         return content
 
-    def _analyze_text(self, ocr_text: str) -> Dict:
+    def _analyze_text(self, ocr_text: str, grade: str = '') -> Dict:
         """分析文字"""
         headers = {
             'Authorization': f'Bearer {self.api_key}',
             'Content-Type': 'application/json'
         }
 
+        prompt = get_generic_analysis_prompt(ocr_text, grade=grade)
+        
         payload = {
             "model": f"{self.analysis_model}",
             "messages": [
                 {
                     "role": "user",
-                    "content": get_generic_analysis_prompt(ocr_text)
+                    "content": prompt
                 }
             ]
         }

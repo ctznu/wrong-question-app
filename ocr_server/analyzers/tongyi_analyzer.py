@@ -3,7 +3,11 @@ from typing import Dict, Optional
 from api_llm_client import TongyiLLM
 
 class TongyiAnalyzer(QuestionAnalyzer):
-    def analyze_question(self, ocr_text: str, image_path: Optional[str] = None) -> Dict:
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+    
+    def analyze_question(self, ocr_text: str, image_path: Optional[str] = None, **kwargs) -> Dict:
+        grade = kwargs.get('grade', '') or self.grade
         tongyi = TongyiLLM()
         if not tongyi.is_available():
             return {
@@ -12,7 +16,7 @@ class TongyiAnalyzer(QuestionAnalyzer):
                 'message': '请配置通义千问 API 密钥',
                 'llm_source': 'tongyi'
             }
-        raw_result = tongyi.analyze_question(ocr_text, image_path)
+        raw_result = tongyi.analyze_question(ocr_text, image_path, grade=grade)
         return self.parse_result(raw_result)
     
     def parse_result(self, raw_result: Dict, ocr_result: Optional[Dict] = None) -> Dict:

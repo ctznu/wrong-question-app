@@ -354,6 +354,7 @@ def analyze():
 
     f = request.files['file']
     analyzer_type = request.form.get('model', 'zhipu')
+    grade = request.form.get('grade', '')  # 获取学生年级
     
     # 检查文件类型
     allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
@@ -374,7 +375,7 @@ def analyze():
             out_f.write(f.stream.read())
 
         analyzer = AnalyzerFactory.get_analyzer(analyzer_type)
-        result = analyzer.analyze_question('', saved_path)
+        result = analyzer.analyze_question('', saved_path, grade=grade)
 
         return jsonify(result)
     except Exception as e:
