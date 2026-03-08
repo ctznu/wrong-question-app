@@ -11,7 +11,7 @@ from typing import Optional, Dict, List
 class OllamaLLMClient:
     """Ollama 本地 LLM 客户端"""
 
-    def __init__(self, base_url: str = None):
+    def __init__(self, base_url: Optional[str] = None):
         self.base_url = base_url or os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
         self.default_model = os.getenv('OLLAMA_MODEL', 'qwen2.5:14b')
         self.timeout = int(os.getenv('OLLAMA_TIMEOUT', '60'))
@@ -84,95 +84,60 @@ class OllamaLLMClient:
             }
 
     def _build_analysis_prompt(self, ocr_text: str, grade: str = '') -> str:
-        """构建分析提示词"""
-        grade_context = ""
+        """构建分析提示词 - 方案A：恢复核心规则"""
+        grade_info = ""
         if grade:
             grade_labels = {
                 '1': '一年级', '2': '二年级', '3': '三年级',
                 '4': '四年级', '5': '五年级', '6': '六年级'
             }
             grade_label = grade_labels.get(str(grade), f'{grade}年级')
-            grade_context = f"\n重要：学生是{grade_label}学生，解答时只能使用该年级范围内的知识和方法。\n"
+            grade_info = f"\n**学生年级**：{grade_label}"
         
-        return f"""你是一个小学错题分析老师，专门帮助小学生理解和纠正错题。请分析以下OCR识别的文字：
+        return f"""你是一位经验丰富的小学教师，正在分析学生的错题。{grade_info}
 
+**OCR识别的文字：**
 {ocr_text}
-{grade_context}
-**重要要求：**
-1. 必须忠实地提取图片上的文字，不要修改、补充或猜测题目内容
-2. 如果有填空（ ），保持填空的形式，不要自己填写
-3. 不要自己发挥，不要添加图片上没有的内容
-4. 如果题目不完整（有填空），就保持不完整的状态
 
-请按以下JSON格式输出：
+**核心任务：**
+1. 区分印刷体（题目）和手写体（学生答案）
+   - 黑色手写体是学生答案，红色手写体是老师订正（忽略）
+   - 保留题目中的括号、横线等占位符
+2. 独立推理出正确答案（不受学生答案影响）
+3. 分析学生答案的错误原因
+
+**输出格式（JSON）：**
 {{
   "is_question": true/false,
   "subject": "math/chinese/english/unknown",
-  "question_text": "题目完整内容（忠实地提取，不要修改）",
+  "question_text": "题目内容（只含印刷体，括号横线保持原样）",
   "question_type": "single_choice/multiple_choice/fill_blank/short_answer/essay",
-  "options": [
-    {{"key": "A", "text": "选项A内容"}},
-    {{"key": "B", "text": "选项B内容"}},
-    {{"key": "C", "text": "选项C内容"}},
-    {{"key": "D", "text": "选项D内容"}}
-  ],
-  "correct_answer": "正确答案",
+  "options": [{{"key": "A", "text": "选项内容"}}],
+  "correct_answer": "正确答案（你独立推理得出）",
   "difficulty": "easy/medium/hard",
-  "student_answer": "学生答案（如果识别到）",
+  "student_answer": "学生答案（只含黑色手写体）",
   "student_answer_bbox": {{"x": 0, "y": 0, "width": 0, "height": 0}},
   "is_wrong": true/false,
   "error_type": "calculation/concept/reading/careless/none",
-  "error_reason": "错误原因",
+  "error_reason": "用小学生能懂的话解释错在哪",
   "confidence": 0.95,
-  "explanation": "题目解析"
+  "explanation": "解题思路"
 }}
 
-重要指导原则：
+**错误类型：**
+- calculation: 计算过程出错
+- concept: 概念理解错误  
+- reading: 审题理解错误（如"2个30相乘"理解成2×30）
+- careless: 粗心大意
+- none: 答案正确
 
-1. **题目内容提取要求（非常重要）**：
-   - 忠实地提取图片上的文字，不要修改、补充或猜测
-   - 对于选择题：question_text 必须包含完整的题干和所有选项（A、B、C、D等）
-   - 选项必须完整提取，包括选项标识（A、B、C、D）和选项内容
-   - 不要遗漏任何选项，即使选项内容较长
-   - 如果有填空（ ），保持填空的形式，不要自己填写
+**重要提醒：**
+- "几个几相乘/相加"要正确理解题意
+- 正确答案必须独立推理
+- 学生答案只识别黑色手写体
+- student_answer_bbox 表示学生答案位置（百分比坐标0-1）
 
-2. **目标学生群体**：这是给小学生看的（1-6年级），请用简单易懂的语言
-
-3. **错误原因分析要求**：
-   - 不要用过于抽象或高深的数学概念解释
-   - 不要举例小学生还没学过的知识点（比如小数、分数、负数等）
-   - 用具体的、生活化的例子说明
-   - 简洁明了，一句话说清楚即可
-   - **对于英语学科的题目，分析内容必须使用中文**
-
-4. **error_type 分类标准**（必须从以下4个中选择一个）**：
-   - **calculation（计算错误）**：加减乘除算错了、进位借位错了、小数点点错了、抄错数字、写错符号等
-   - **concept（概念不清）**：记错公式、理解错意思、混淆相似概念、用错公式等
-   - **reading（审题错误）**：没看清题目、看错数字、答非所问、漏看条件、理解错题意等
-   - **careless（粗心大意）**：漏写单位、漏写答案、写错位置、忘记做题、抄错题目等
-   - **none（无错误）**：学生答案正确，没有错误
-
-5. **错误原因示例（参考风格）**：
-   - "把加号看成乘号了，看仔细一点哦"
-   - "个位进位时算错了，再检查一下"
-   - "忘记先算括号里面的了，顺序要记牢"
-   - "把题目要求看错了，要读清楚问的是什么"
-
-6. **科目识别**：
-   - math（数学）：有数字、计算符号、几何图形、方程等
-   - chinese（语文）：有拼音、汉字、词语、古诗、阅读理解等
-   - english（英语）：有英文单词、翻译、语法等
-
-7. **语言要求**：
-   - 对于英语学科的题目：
-     - 题目内容和答案可以保留英文
-     - 但**分析内容（错误原因、解析、推理步骤等）必须使用中文**
-   - 对于其他学科的题目：
-     - 所有内容都使用中文
-
-8. 其他要求：
-   - student_answer_bbox 表示学生答案在图片中的位置（百分比坐标，0-1之间）
-   - 如果文字不是题目，设置 is_question 为 false"""
+只输出JSON。"""
 
     def _call_text(self, prompt: str, model: str) -> Dict:
         """纯文本调用"""
