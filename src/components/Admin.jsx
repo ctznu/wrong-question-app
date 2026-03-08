@@ -8,7 +8,7 @@ import { LLM_MODELS } from '../utils/constants';
 function Admin() {
   const { user: currentUser, updateUser } = useAuth();
   const [users, setUsers] = useState([]);
-  const [setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editDialog, setEditDialog] = useState({ open: false, user: null });
   const [editedUser, setEditedUser] = useState({});
