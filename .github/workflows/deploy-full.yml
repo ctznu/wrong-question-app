@@ -75,8 +75,9 @@ jobs:
           # Deploy frontend
           cd /tmp
           tar -xzf frontend.tar.gz
-          rm -rf /home/admin/html/*
-          cp -r build/* /home/admin/html/
+          sudo rm -rf /usr/share/nginx/html/*
+          sudo cp -r build/* /usr/share/nginx/html/
+          sudo nginx -s reload
           
           # Deploy backend
           tar -xzf backend.tar.gz
