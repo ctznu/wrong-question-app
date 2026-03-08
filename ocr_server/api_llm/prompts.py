@@ -89,6 +89,12 @@ def get_analysis_prompt(ocr_text: str) -> str:
 - 对于其他学科的题目：
   - 所有内容都使用中文
 
+**学科识别要求：**
+- 数学：包含数字、符号、几何图形、计算等内容的题目
+- 语文：包含汉字、词语、句子、阅读理解等内容的题目
+- 英语：包含英文单词、句子、阅读理解等内容的题目
+- 必须从以上三个学科中选择一个，不能返回 'unknown'
+
 输出JSON格式：
 {{
   "question_text": "完整题目内容（只包含印刷体，括号和横线保持原样，不要填充）",
@@ -99,7 +105,7 @@ def get_analysis_prompt(ocr_text: str) -> str:
   "error_reason": "错误原因",
   "explanation": "题目解析",
   "reasoning_steps": "推理步骤（分步骤展示如何从题目推导出正确答案）",
-  "subject": "math/chinese/english/unknown",
+  "subject": "math/chinese/english",
   "difficulty": "easy/medium/hard"
 }}
 

@@ -54,7 +54,7 @@ router.post('/', auth, async (req, res) => {
     res.json(savedQuestion);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Server Error', message: err.message });
   }
 });
 
@@ -68,7 +68,7 @@ router.get('/original/:questionId', auth, async (req, res) => {
     res.json(questions);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Server Error', message: err.message });
   }
 });
 
@@ -79,7 +79,7 @@ router.get('/', auth, async (req, res) => {
     res.json(questions);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Server Error', message: err.message });
   }
 });
 
@@ -104,7 +104,7 @@ router.put('/:id/select', auth, async (req, res) => {
     res.json(updatedQuestion);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Server Error', message: err.message });
   }
 });
 
@@ -129,7 +129,7 @@ router.put('/:id/unselect', auth, async (req, res) => {
     res.json(updatedQuestion);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Server Error', message: err.message });
   }
 });
 
@@ -150,7 +150,7 @@ router.delete('/:id', auth, async (req, res) => {
     res.json({ msg: 'Generated question removed' });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Server Error', message: err.message });
   }
 });
 

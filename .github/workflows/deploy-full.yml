@@ -124,7 +124,7 @@ jobs:
           API_TIMEOUT=60
           
           # 默认 LLM 选择
-          DEFAULT_LLM=zhipu
+          DEFAULT_LLM=hunyuan
           
           # 图片处理配置
           MAX_IMAGE_SIZE=10485760  # 10MB

@@ -50,7 +50,7 @@ router.get('/', auth, async (req, res) => {
     });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Server Error', message: err.message });
   }
 });
 
@@ -71,7 +71,7 @@ router.get('/:id', auth, async (req, res) => {
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: 'Question not found' });
     }
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Server Error', message: err.message });
   }
 });
 
@@ -100,7 +100,7 @@ router.post('/', auth, async (req, res) => {
     res.json(savedQuestion);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Server Error', message: err.message });
   }
 });
 
@@ -141,7 +141,7 @@ router.put('/:id', auth, async (req, res) => {
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: 'Question not found' });
     }
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Server Error', message: err.message });
   }
 });
 
@@ -162,7 +162,7 @@ router.delete('/:id', auth, async (req, res) => {
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: 'Question not found' });
     }
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Server Error', message: err.message });
   }
 });
 
@@ -201,7 +201,7 @@ router.post('/:id/generate-similar', auth, async (req, res) => {
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ msg: 'Question not found' });
     }
-    res.status(500).send('Server Error');
+    res.status(500).json({ error: 'Server Error', message: err.message });
   }
 });
 
