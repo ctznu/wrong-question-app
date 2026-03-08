@@ -3,7 +3,7 @@ import { Container, Typography, Button, Box, TextField, Card, CardContent, Paper
 import { useParams, useNavigate } from 'react-router-dom';
 import { Edit3, Save, X, ArrowLeft, Lightbulb, Loader2, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { getGradeLabel, formatSemester, getSemesterOptions } from '../utils/formatters';
+import { getGradeLabel, formatSemester, getSemesterOptions, formatDate } from '../utils/formatters';
 
 
 
@@ -395,8 +395,8 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   </Box>
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="body2" color="text.secondary">
-                      <strong>创建时间：</strong> {question.createdAt}
-                    </Typography>
+                    <strong>创建时间：</strong> {formatDate(question.createdAt)}
+                  </Typography>
                   </Box>
                 </Box>
               </Box>

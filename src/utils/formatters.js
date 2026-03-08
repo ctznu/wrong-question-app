@@ -59,3 +59,21 @@ export const getSemesterOptions = (currentGrade) => {
   
   return options;
 };
+
+/**
+ * 格式化日期时间为友好格式
+ */
+export const formatDate = (dateString) => {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  
+  return `${year}年${month}月${day}日 ${hours}:${minutes}`;
+};
