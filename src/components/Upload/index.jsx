@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Typography, Button, Box, Alert, Snackbar } from '@mui/material';
+import { Container, Button, Box, Alert, Snackbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Save, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -153,12 +153,19 @@ function Upload({ addQuestion }) {
         } else {
         }
         if (data.errorReason) setFormData(prev => ({ ...prev, reason: data.errorReason }));
-        // 将推理步骤和解析合并到 explanation 字段
-        const explanationParts = [];
-        if (data.reasoningSteps) explanationParts.push(data.reasoningSteps);
-        if (data.explanation) explanationParts.push(data.explanation);
-        if (explanationParts.length > 0) {
-          setFormData(prev => ({ ...prev, explanation: explanationParts.join('\n\n') }));
+        // 保存推理步骤和解析，确保推理步骤不被覆盖
+        if (data.reasoningSteps || data.explanation) {
+          let explanationContent = '';
+          if (data.reasoningSteps) {
+            explanationContent += data.reasoningSteps;
+          }
+          if (data.explanation) {
+            if (explanationContent) {
+              explanationContent += '\n\n';
+            }
+            explanationContent += data.explanation;
+          }
+          setFormData(prev => ({ ...prev, explanation: explanationContent }));
         }
         if (data.errorType && data.errorType !== 'none') {
           // 映射错误类型到中文标签
@@ -267,15 +274,6 @@ function Upload({ addQuestion }) {
                 题目类型: {QUESTION_TYPES.find(q => q.value === ocrResult.questionType)?.label || ocrResult.questionType} |
                 置信度: {(ocrResult.confidence * 100).toFixed(0)}%<br/>
                 {ocrResult.isWrong && <span style={{color: '#d32f2f'}}>识别到错误答案（{ERROR_TYPES.find(t => t.value === ocrResult.errorType)?.label || ocrResult.errorType}）</span>}
-              </Alert>
-            )}
-
-            {ocrResult && ocrResult.reasoningSteps && (
-              <Alert severity="info" sx={{ mb: 2 }}>
-                <strong>推理步骤：</strong><br/>
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-line', mt: 1 }}>
-                  {ocrResult.reasoningSteps}
-                </Typography>
               </Alert>
             )}
 

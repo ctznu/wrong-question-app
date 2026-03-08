@@ -357,16 +357,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   </Box>
                 </Box>
 
-                {question.reasoningSteps && (
-                  <Box sx={{ bgcolor: '#ffffff' }}>
-                    <Typography variant="body2" gutterBottom sx={{ mt: 2, fontWeight: 'bold' }}>
-                      <strong>推理步骤：</strong>
-                    </Typography>
-                    <Typography variant="body2" paragraph sx={{ whiteSpace: 'pre-line' }}>
-                      {question.reasoningSteps}
-                    </Typography>
-                  </Box>
-                )}
+
 
                 <Typography variant="body2" gutterBottom sx={{ mt: 2, fontWeight: 'bold' }}>
                   <strong>标签：</strong>
