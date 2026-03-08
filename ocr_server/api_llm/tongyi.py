@@ -19,7 +19,7 @@ class TongyiLLM(BaseAPILM):
         # 通义千问 API 端点
         self.base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
         self.vision_model = os.getenv('TONGYI_VISION_MODEL', 'qwen-vl-plus')
-        self.analysis_model = os.getenv('TONGYI_ANALYSIS_MODEL', 'qwen-plus')
+        self.analysis_model = os.getenv('TONGYI_ANALYSIS_MODEL', 'qwen-math-plus')
 
     def is_available(self) -> bool:
         return bool(self.api_key)
