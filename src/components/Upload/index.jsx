@@ -153,9 +153,13 @@ function Upload({ addQuestion }) {
         } else {
         }
         if (data.errorReason) setFormData(prev => ({ ...prev, reason: data.errorReason }));
-        // 将推理步骤保存到 explanation 字段
-        if (data.reasoningSteps) setFormData(prev => ({ ...prev, explanation: data.reasoningSteps }));
-        if (data.explanation) setFormData(prev => ({ ...prev, explanation: data.explanation }));
+        // 将推理步骤和解析合并到 explanation 字段
+        const explanationParts = [];
+        if (data.reasoningSteps) explanationParts.push(data.reasoningSteps);
+        if (data.explanation) explanationParts.push(data.explanation);
+        if (explanationParts.length > 0) {
+          setFormData(prev => ({ ...prev, explanation: explanationParts.join('\n\n') }));
+        }
         if (data.errorType && data.errorType !== 'none') {
           // 映射错误类型到中文标签
           const errorTypeMap = {
