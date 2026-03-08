@@ -199,12 +199,20 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   <TextField
                     label="解析"
                     multiline
-                    rows={{ xs: 5, sm: 4 }}
+                    rows={1}
+                    minRows={4}
                     value={editedQuestion.explanation || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, explanation: e.target.value })}
                     placeholder="请输入题目解析（包含推理步骤）..."
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
-                    sx={{ flex: 3 }}
+                    sx={{ flex: 3, maxHeight: '300px' }}
+                    InputProps={{
+                      style: {
+                        minHeight: '100px',
+                        maxHeight: '300px',
+                        overflowY: 'auto'
+                      }
+                    }}
                   />
                 </Box>
                 {/* 错误答案和错误原因 - 响应式布局 */}

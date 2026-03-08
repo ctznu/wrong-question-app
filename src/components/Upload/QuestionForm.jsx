@@ -138,10 +138,11 @@ function QuestionForm({ formData, onChange, user }) {
           onBlur={() => setFocusedField('correctAnswer')}
         />
         <TextField
-          sx={{ flex: 3 }}
+          sx={{ flex: 3, maxHeight: '300px' }}
           label="解析"
           multiline
-          rows={{ xs: 5, sm: 4 }}
+          rows={1}
+          minRows={4}
           value={formData.explanation || ''}
           onChange={handleFieldChange('explanation')}
           placeholder="请输入题目解析（包含推理步骤）..."
@@ -166,7 +167,12 @@ function QuestionForm({ formData, onChange, user }) {
                   <X size={16} />
                 </IconButton>
               </InputAdornment>
-            )
+            ),
+            style: {
+              minHeight: '100px',
+              maxHeight: '300px',
+              overflowY: 'auto'
+            }
           }}
           onFocus={() => setFocusedField('explanation')}
           onBlur={() => setFocusedField('explanation')}
