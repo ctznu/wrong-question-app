@@ -70,7 +70,8 @@ function Admin() {
   const handleSaveUser = async () => {
     try {
       const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
-      const response = await fetch(`${apiBaseUrl}/users/${editedUser._id || editedUser.id}`, {
+      const userId = editedUser._id || editedUser.id;
+      const response = await fetch(`${apiBaseUrl}/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +82,10 @@ function Admin() {
       
       if (response.ok) {
         const updatedUser = await response.json();
-        setUsers(users.map(u => u._id === updatedUser._id || u.id === updatedUser.id ? updatedUser : u));
+        setUsers(users.map(u => {
+          const currentUserId = u._id || u.id;
+          return currentUserId === userId ? updatedUser : u;
+        }));
         setEditDialog({ open: false, user: null });
         setSnackbar({ open: true, message: '用户信息更新成功', severity: 'success' });
       } else {
