@@ -1,10 +1,16 @@
 name: Deploy Full Stack to Aliyun
 
 on:
+  # 只在手动触发时执行全栈部署
+  workflow_dispatch:
+  # 当后端或 OCR 服务器文件变更时自动执行
   push:
     branches:
       - master
-  workflow_dispatch:
+    paths:
+      - 'server/**'
+      - 'ocr_server/**'
+      - '.github/workflows/deploy-full.yml'
 
 jobs:
   deploy:
@@ -67,9 +73,8 @@ jobs:
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          # Stop existing services
-          sudo systemctl stop wrong-question-backend || true
-          sudo systemctl stop ocr-server || true
+          # Stop existing services if any
+          pm2 stop all || true
           
           # Deploy frontend
           cd /tmp
@@ -142,43 +147,52 @@ jobs:
           # Install dependencies on server
           cd /opt/wrong-question-backend
           npm install --production
+          npm install -g pm2
           
           cd /opt/ocr-server
           pip3 install -r requirements.txt
           
-          # Create systemd service files
-          echo "[Unit]
-          Description=Wrong Question Backend API
-          After=network.target
+          # Create pm2 ecosystem file
+          echo "module.exports = {
+          apps: [
+            {
+              name: 'backend-server',
+              script: 'server.js',
+              cwd: '/opt/wrong-question-backend',
+              instances: 1,
+              autorestart: true,
+              watch: false,
+              max_memory_restart: '1G',
+              env: {
+                NODE_ENV: 'production'
+              }
+            },
+            {
+              name: 'ocr-server',
+              script: 'python3',
+              args: '-m flask run --host=0.0.0.0 --port=5002',
+              cwd: '/opt/ocr-server',
+              instances: 1,
+              autorestart: true,
+              watch: false,
+              max_memory_restart: '1G',
+              env: {
+                FLASK_ENV: 'production',
+                FLASK_APP: 'app.py'
+              }
+            }
+          ]
+          }" > /opt/pm2-ecosystem.config.js
           
-          [Service]
-          User=${{ secrets.SERVER_USERNAME }}
-          WorkingDirectory=/opt/wrong-question-backend
-          ExecStart=/usr/bin/node server.js
-          Restart=always
+          # Stop existing services if any
+          pm2 stop all || true
           
-          [Install]
-          WantedBy=multi-user.target" | sudo tee /etc/systemd/system/wrong-question-backend.service
+          # Start services with pm2
+          pm2 start /opt/pm2-ecosystem.config.js
           
-          echo "[Unit]
-          Description=OCR Server
-          After=network.target
-          
-          [Service]
-          User=${{ secrets.SERVER_USERNAME }}
-          WorkingDirectory=/opt/ocr-server
-          ExecStart=/usr/bin/python3 -m flask run --host=0.0.0.0
-          Restart=always
-          
-          [Install]
-          WantedBy=multi-user.target" | sudo tee /etc/systemd/system/ocr-server.service
-          
-          # Reload systemd and start services
-          sudo systemctl daemon-reload
-          sudo systemctl enable wrong-question-backend
-          sudo systemctl enable ocr-server
-          sudo systemctl start wrong-question-backend
-          sudo systemctl start ocr-server
+          # Set pm2 to start on boot
+          pm2 save
+          pm2 startup systemd -u ${{ secrets.SERVER_USERNAME }} --hp /home/${{ secrets.SERVER_USERNAME }}
           
           # Clean up
           rm -rf build server ocr_server frontend.tar.gz backend.tar.gz ocr_server.tar.gz
