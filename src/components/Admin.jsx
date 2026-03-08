@@ -160,7 +160,12 @@ function Admin() {
           </Alert>
         )}
 
-        <TableContainer>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <Typography variant="body1">加载中...</Typography>
+          </Box>
+        ) : (
+          <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
@@ -222,6 +227,7 @@ function Admin() {
             </TableBody>
           </Table>
         </TableContainer>
+        )}
       </Paper>
 
       {/* 编辑用户对话框 */}
