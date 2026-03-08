@@ -1,16 +1,7 @@
 name: Deploy to Aliyun
 
 on:
-  # 当前端文件变更时自动执行
-  push:
-    branches:
-      - master
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/deploy.yml'
+  # 只在手动触发时执行前端部署
   workflow_dispatch:
 
 jobs:

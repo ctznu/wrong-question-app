@@ -1,16 +1,12 @@
 name: Deploy Full Stack to Aliyun
 
 on:
-  # 只在手动触发时执行全栈部署
+  # 手动触发
   workflow_dispatch:
-  # 当后端或 OCR 服务器文件变更时自动执行
+  # 当任何文件变更时自动执行全栈部署
   push:
     branches:
       - master
-    paths:
-      - 'server/**'
-      - 'ocr_server/**'
-      - '.github/workflows/deploy-full.yml'
 
 jobs:
   deploy:
