@@ -148,36 +148,36 @@ jobs:
           pip3 install -r requirements.txt
           
           # Create pm2 ecosystem file
-          echo "module.exports = {
-          apps: [
-            {
-              name: 'backend-server',
-              script: 'server.js',
-              cwd: '/home/admin/wrong-question-backend',
-              instances: 1,
-              autorestart: true,
-              watch: false,
-              max_memory_restart: '1G',
-              env: {
-                NODE_ENV: 'production'
-              }
-            },
-            {
-              name: 'ocr-server',
-              script: 'python3',
-              args: '-m flask run --host=0.0.0.0 --port=5000',
-              cwd: '/home/admin/ocr-server',
-              instances: 1,
-              autorestart: true,
-              watch: false,
-              max_memory_restart: '1G',
-              env: {
-                FLASK_ENV: 'production',
-                FLASK_APP: 'app.py'
-              }
-            }
-          ]
-          }" > /home/admin/pm2-ecosystem.config.js
+          echo 'module.exports = {
+  apps: [
+    {
+      name: "backend-server",
+      script: "server.js",
+      cwd: "/home/admin/wrong-question-backend",
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: "1G",
+      env: {
+        NODE_ENV: "production"
+      }
+    },
+    {
+      name: "ocr-server",
+      script: "python3",
+      args: "-m flask run --host=0.0.0.0 --port=5000",
+      cwd: "/home/admin/ocr-server",
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: "1G",
+      env: {
+        FLASK_ENV: "production",
+        FLASK_APP: "app.py"
+      }
+    }
+  ]
+}' > /home/admin/pm2-ecosystem.config.js
           
           # Stop existing services if any
           pm2 stop all || true
