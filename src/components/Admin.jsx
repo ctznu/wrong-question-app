@@ -6,7 +6,7 @@ import { USER_ROLE_LABELS } from '../types/user';
 import { LLM_MODELS } from '../utils/constants';
 
 function Admin() {
-  const { user } = useAuth();
+  const { user: currentUser, updateUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -17,7 +17,7 @@ function Admin() {
   // 加载用户列表
   useEffect(() => {
     const loadUsers = async () => {
-      if (!user || user.role !== 'admin') return;
+      if (!currentUser || currentUser.role !== 'admin') return;
       
       try {
         setLoading(true);
@@ -42,10 +42,10 @@ function Admin() {
     };
 
     loadUsers();
-  }, [user]);
+  }, [currentUser]);
 
   // 检查用户是否是管理员
-  if (!user || user.role !== 'admin') {
+  if (!currentUser || currentUser.role !== 'admin') {
     return (
       <Container maxWidth="md" sx={{ mt: 4 }}>
         <Paper sx={{ p: 4, textAlign: 'center' }}>
@@ -86,6 +86,12 @@ function Admin() {
           const currentUserId = u._id || u.id;
           return currentUserId === userId ? updatedUser : u;
         }));
+        
+        const currentUserId = currentUser?._id || currentUser?.id;
+        if (currentUserId === userId) {
+          updateUser(updatedUser);
+        }
+        
         setEditDialog({ open: false, user: null });
         setSnackbar({ open: true, message: '用户信息更新成功', severity: 'success' });
       } else {
