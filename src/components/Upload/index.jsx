@@ -180,6 +180,10 @@ function Upload({ addQuestion }) {
   };
 
   const handleSave = async () => {
+    if (!formData.subject) {
+      setSnackbar({ open: true, message: '请选择学科', severity: 'warning' });
+      return;
+    }
     if (!formData.question || !formData.correctAnswer) {
       setSnackbar({ open: true, message: '请先上传图片并进行OCR识别，或手动填写题目和答案', severity: 'warning' });
       return;
