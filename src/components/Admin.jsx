@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Button, Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Dialog, DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, Alert, Snackbar } from '@mui/material';
-import { Users, Settings, Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { Users, Edit, Trash2, Save, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { USER_ROLE_LABELS } from '../types/user';
 import { LLM_MODELS } from '../utils/constants';
@@ -8,7 +8,6 @@ import { LLM_MODELS } from '../utils/constants';
 function Admin() {
   const { user: currentUser, updateUser } = useAuth();
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editDialog, setEditDialog] = useState({ open: false, user: null });
   const [editedUser, setEditedUser] = useState({});
