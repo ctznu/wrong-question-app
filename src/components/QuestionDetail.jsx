@@ -189,7 +189,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   <TextField
                     label="正确答案"
                     multiline
-                    rows={{ xs: 5, sm: 4 }}
+                    rows={{ xs: 3, sm: 3 }}
                     value={editedQuestion.correctAnswer || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, correctAnswer: e.target.value })}
                     placeholder="请输入正确答案..."
@@ -199,17 +199,17 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   <TextField
                     label="解析"
                     multiline
-                    rows={1}
-                    minRows={4}
+                    rows={6}
+                    minRows={6}
                     value={editedQuestion.explanation || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, explanation: e.target.value })}
                     placeholder="请输入题目解析（包含推理步骤）..."
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
-                    sx={{ flex: 3, maxHeight: '300px' }}
+                    sx={{ flex: 3 }}
                     InputProps={{
                       style: {
-                        minHeight: '100px',
-                        maxHeight: '300px',
+                        minHeight: '150px',
+                        maxHeight: '400px',
                         overflowY: 'auto'
                       }
                     }}
@@ -220,7 +220,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   <TextField
                     label="错误答案"
                     multiline
-                    rows={{ xs: 5, sm: 4 }}
+                    rows={2}
                     value={editedQuestion.wrongAnswer || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, wrongAnswer: e.target.value })}
                     placeholder="请输入错误答案..."
@@ -230,7 +230,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   <TextField
                     label="错误原因"
                     multiline
-                    rows={{ xs: 5, sm: 4 }}
+                    rows={2}
                     value={editedQuestion.reason || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, reason: e.target.value })}
                     placeholder="请输入错误原因分析..."

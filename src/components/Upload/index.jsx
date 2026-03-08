@@ -176,7 +176,7 @@ function Upload({ addQuestion }) {
             'careless': '粗心大意',
             'none': '无错误'
           };
-          const errorTypeLabel = errorTypeMap[data.errorType] || data.errorType;
+          const errorTypeLabel = errorTypeMap[data.errorType] || '未知错误类型';
           setFormData(prev => ({ ...prev, tags: [errorTypeLabel] }));
         } else {
         }
@@ -270,10 +270,10 @@ function Upload({ addQuestion }) {
             {ocrResult && (
               <Alert severity="success" sx={{ mb: 2 }}>
                 <strong>智能识别完成</strong><br/>
-                学科: {SUBJECTS.find(s => s.value === ocrResult.subject)?.label || ocrResult.subject} |
-                题目类型: {QUESTION_TYPES.find(q => q.value === ocrResult.questionType)?.label || ocrResult.questionType} |
+                学科: {SUBJECTS.find(s => s.value === ocrResult.subject)?.label || '未知'} |
+                题目类型: {QUESTION_TYPES.find(q => q.value === ocrResult.questionType)?.label || '未知'} |
                 置信度: {(ocrResult.confidence * 100).toFixed(0)}%<br/>
-                {ocrResult.isWrong && <span style={{color: '#d32f2f'}}>识别到错误答案（{ERROR_TYPES.find(t => t.value === ocrResult.errorType)?.label || ocrResult.errorType}）</span>}
+                {ocrResult.isWrong && <span style={{color: '#d32f2f'}}>识别到错误答案（{ERROR_TYPES.find(t => t.value === ocrResult.errorType)?.label || '未知错误类型'}）</span>}
               </Alert>
             )}
 

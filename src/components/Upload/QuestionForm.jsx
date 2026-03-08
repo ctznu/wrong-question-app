@@ -107,7 +107,7 @@ function QuestionForm({ formData, onChange, user }) {
           sx={{ flex: 1 }}
           label="正确答案 *"
           multiline
-          rows={{ xs: 5, sm: 4 }}
+          rows={{ xs: 3, sm: 3 }}
           value={formData.correctAnswer}
           onChange={handleFieldChange('correctAnswer')}
           placeholder="请输入正确答案..."
@@ -138,11 +138,11 @@ function QuestionForm({ formData, onChange, user }) {
           onBlur={() => setFocusedField('correctAnswer')}
         />
         <TextField
-          sx={{ flex: 3, maxHeight: '300px' }}
+          sx={{ flex: 3 }}
           label="解析"
           multiline
-          rows={1}
-          minRows={4}
+          rows={6}
+          minRows={6}
           value={formData.explanation || ''}
           onChange={handleFieldChange('explanation')}
           placeholder="请输入题目解析（包含推理步骤）..."
@@ -169,8 +169,8 @@ function QuestionForm({ formData, onChange, user }) {
               </InputAdornment>
             ),
             style: {
-              minHeight: '100px',
-              maxHeight: '300px',
+              minHeight: '150px',
+              maxHeight: '400px',
               overflowY: 'auto'
             }
           }}
@@ -192,7 +192,7 @@ function QuestionForm({ formData, onChange, user }) {
           sx={{ flex: 1 }}
           label="错误答案"
           multiline
-          rows={{ xs: 5, sm: 4 }}
+          rows={2}
           value={formData.wrongAnswer}
           onChange={handleFieldChange('wrongAnswer')}
           placeholder="请输入学生的错误答案..."
@@ -226,7 +226,7 @@ function QuestionForm({ formData, onChange, user }) {
           sx={{ flex: 3 }}
           label="错误原因"
           multiline
-          rows={{ xs: 5, sm: 4 }}
+          rows={2}
           value={formData.reason}
           onChange={handleFieldChange('reason')}
           placeholder="请输入错误原因分析..."
