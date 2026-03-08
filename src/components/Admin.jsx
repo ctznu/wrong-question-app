@@ -8,7 +8,7 @@ import { LLM_MODELS } from '../utils/constants';
 function Admin() {
   const { user: currentUser, updateUser } = useAuth();
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editDialog, setEditDialog] = useState({ open: false, user: null });
   const [editedUser, setEditedUser] = useState({});
@@ -20,6 +20,7 @@ function Admin() {
       if (!currentUser || currentUser.role !== 'admin') return;
       
       try {
+        setLoading(true);
         const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
         const response = await fetch(`${apiBaseUrl}/users`, {
           headers: {
@@ -35,11 +36,13 @@ function Admin() {
         }
       } catch (err) {
         setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
 
     loadUsers();
-  }, [currentUser]);
+  }, [currentUser, setLoading, setUsers, setError]);
 
   // 检查用户是否是管理员
   if (!currentUser || currentUser.role !== 'admin') {
