@@ -173,7 +173,7 @@ jobs:
               watch: false,
               max_memory_restart: '1G',
               env: {
-                FLASK_ENV: 'production',
+                FLASK_ENV: 'development',
                 FLASK_APP: 'app.py'
               }
             }
