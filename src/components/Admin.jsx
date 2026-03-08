@@ -19,7 +19,6 @@ function Admin() {
       if (!currentUser || currentUser.role !== 'admin') return;
       
       try {
-        setLoading(true);
         const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
         const response = await fetch(`${apiBaseUrl}/users`, {
           headers: {
@@ -35,8 +34,6 @@ function Admin() {
         }
       } catch (err) {
         setError(err.message);
-      } finally {
-        setLoading(false);
       }
     };
 
