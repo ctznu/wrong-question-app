@@ -182,6 +182,13 @@ jobs:
           # Stop existing services if any
           pm2 stop all || true
           
+          # Check and kill processes using ports 5001 and 5002
+          lsof -t -i:5001 | xargs kill -9 2>/dev/null || true
+          lsof -t -i:5002 | xargs kill -9 2>/dev/null || true
+          
+          # Wait for ports to be released
+          sleep 2
+          
           # Start services with pm2
           pm2 start /home/admin/pm2-ecosystem.config.js
           
