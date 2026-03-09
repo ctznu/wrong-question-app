@@ -138,11 +138,19 @@ function QuestionForm({ formData, onChange, user }) {
           onBlur={() => setFocusedField('correctAnswer')}
         />
         <TextField
-          sx={{ flex: 3 }}
+          sx={{ 
+            flex: 3,
+            '& .MuiInputBase-root': {
+              alignItems: 'flex-start'
+            },
+            '& .MuiInputBase-inputMultiline': {
+              minHeight: '46px !important',
+              maxHeight: '144px',
+              overflowY: 'auto !important'
+            }
+          }}
           label="解析"
           multiline
-          rows={6}
-          minRows={6}
           value={formData.explanation || ''}
           onChange={handleFieldChange('explanation')}
           placeholder="请输入题目解析（包含推理步骤）..."
@@ -223,10 +231,19 @@ function QuestionForm({ formData, onChange, user }) {
           onBlur={() => setFocusedField('wrongAnswer')}
         />
         <TextField
-          sx={{ flex: 3 }}
+          sx={{ 
+            flex: 3,
+            '& .MuiInputBase-root': {
+              alignItems: 'flex-start'
+            },
+            '& .MuiInputBase-inputMultiline': {
+              minHeight: '46px !important',
+              maxHeight: '144px',
+              overflowY: 'auto !important'
+            }
+          }}
           label="错误原因"
           multiline
-          rows={2}
           value={formData.reason}
           onChange={handleFieldChange('reason')}
           placeholder="请输入错误原因分析..."

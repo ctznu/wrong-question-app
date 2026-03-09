@@ -199,18 +199,19 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   <TextField
                     label="解析"
                     multiline
-                    rows={6}
-                    minRows={6}
                     value={editedQuestion.explanation || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, explanation: e.target.value })}
                     placeholder="请输入题目解析（包含推理步骤）..."
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
-                    sx={{ flex: 3 }}
-                    InputProps={{
-                      style: {
-                        minHeight: '150px',
-                        maxHeight: '400px',
-                        overflowY: 'auto'
+                    sx={{ 
+                      flex: 3,
+                      '& .MuiInputBase-root': {
+                        alignItems: 'flex-start'
+                      },
+                      '& .MuiInputBase-inputMultiline': {
+                        minHeight: '46px !important',
+                        maxHeight: '144px',
+                        overflowY: 'auto !important'
                       }
                     }}
                   />
@@ -230,12 +231,21 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                   <TextField
                     label="错误原因"
                     multiline
-                    rows={2}
                     value={editedQuestion.reason || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, reason: e.target.value })}
                     placeholder="请输入错误原因分析..."
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
-                    sx={{ flex: 3 }}
+                    sx={{ 
+                      flex: 3,
+                      '& .MuiInputBase-root': {
+                        alignItems: 'flex-start'
+                      },
+                      '& .MuiInputBase-inputMultiline': {
+                        minHeight: '46px !important',
+                        maxHeight: '144px',
+                        overflowY: 'auto !important'
+                      }
+                    }}
                   />
                 </Box>
                 {/* 学期选择器 */}
