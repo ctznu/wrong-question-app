@@ -4,6 +4,7 @@ import { SUBJECTS } from '../../utils/constants';
 import { getSemesterOptions, getGradeLabel } from '../../utils/formatters';
 import { X } from 'lucide-react';
 import ClaySelect from '../ClaySelect';
+import FlexibleTextarea from '../FlexibleTextarea';
 
 function QuestionForm({ formData, onChange, user }) {
   const [focusedField, setFocusedField] = React.useState('');
@@ -137,53 +138,16 @@ function QuestionForm({ formData, onChange, user }) {
           onFocus={() => setFocusedField('correctAnswer')}
           onBlur={() => setFocusedField('correctAnswer')}
         />
-        <TextField
-          sx={{ 
-            flex: 3,
-            '& .MuiInputBase-root': {
-              alignItems: 'flex-start'
-            },
-            '& .MuiInputBase-inputMultiline': {
-              minHeight: '46px !important',
-              maxHeight: '144px',
-              overflowY: 'auto !important'
-            }
-          }}
+        <FlexibleTextarea
           label="解析"
-          multiline
           value={formData.explanation || ''}
           onChange={handleFieldChange('explanation')}
           placeholder="请输入题目解析（包含推理步骤）..."
-          InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
-          InputProps={{
-            endAdornment: formData.explanation && (
-              <InputAdornment position="end">
-                <IconButton 
-                  onClick={() => onChange('explanation', '')} 
-                  edge="end"
-                  sx={{ 
-                    opacity: focusedField === 'explanation' ? 1 : 0,
-                    transition: 'opacity 0.2s',
-                    '&:hover': {
-                      opacity: 1,
-                      bgcolor: 'rgba(0, 0, 0, 0.04)'
-                    }
-                  }}
-                  onMouseEnter={() => setFocusedField('explanation')}
-                  onMouseLeave={() => setFocusedField('')}
-                >
-                  <X size={16} />
-                </IconButton>
-              </InputAdornment>
-            ),
-            style: {
-              minHeight: '150px',
-              maxHeight: '400px',
-              overflowY: 'auto'
-            }
-          }}
-          onFocus={() => setFocusedField('explanation')}
-          onBlur={() => setFocusedField('explanation')}
+          flex={3}
+          clearable={true}
+          onClear={() => onChange('explanation', '')}
+          focusedField={focusedField}
+          setFocusedField={setFocusedField}
         />
       </Box>
 
@@ -230,48 +194,16 @@ function QuestionForm({ formData, onChange, user }) {
           onFocus={() => setFocusedField('wrongAnswer')}
           onBlur={() => setFocusedField('wrongAnswer')}
         />
-        <TextField
-          sx={{ 
-            flex: 3,
-            '& .MuiInputBase-root': {
-              alignItems: 'flex-start'
-            },
-            '& .MuiInputBase-inputMultiline': {
-              minHeight: '46px !important',
-              maxHeight: '144px',
-              overflowY: 'auto !important'
-            }
-          }}
+        <FlexibleTextarea
           label="错误原因"
-          multiline
           value={formData.reason}
           onChange={handleFieldChange('reason')}
           placeholder="请输入错误原因分析..."
-          InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
-          InputProps={{
-            endAdornment: formData.reason && (
-              <InputAdornment position="end">
-                <IconButton 
-                  onClick={() => onChange('reason', '')} 
-                  edge="end"
-                  sx={{ 
-                    opacity: focusedField === 'reason' ? 1 : 0,
-                    transition: 'opacity 0.2s',
-                    '&:hover': {
-                      opacity: 1,
-                      bgcolor: 'rgba(0, 0, 0, 0.04)'
-                    }
-                  }}
-                  onMouseEnter={() => setFocusedField('reason')}
-                  onMouseLeave={() => setFocusedField('')}
-                >
-                  <X size={16} />
-                </IconButton>
-              </InputAdornment>
-            )
-          }}
-          onFocus={() => setFocusedField('reason')}
-          onBlur={() => setFocusedField('reason')}
+          flex={3}
+          clearable={true}
+          onClear={() => onChange('reason', '')}
+          focusedField={focusedField}
+          setFocusedField={setFocusedField}
         />
       </Box>
 

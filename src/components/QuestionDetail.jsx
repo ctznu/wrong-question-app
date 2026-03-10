@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Edit3, Save, X, ArrowLeft, Lightbulb, Loader2, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getGradeLabel, formatSemester, getSemesterOptions, formatDate } from '../utils/formatters';
+import FlexibleTextarea from './FlexibleTextarea';
 
 
 
@@ -196,24 +197,12 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
                     sx={{ flex: 1 }}
                   />
-                  <TextField
+                  <FlexibleTextarea
                     label="解析"
-                    multiline
                     value={editedQuestion.explanation || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, explanation: e.target.value })}
                     placeholder="请输入题目解析（包含推理步骤）..."
-                    InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
-                    sx={{ 
-                      flex: 3,
-                      '& .MuiInputBase-root': {
-                        alignItems: 'flex-start'
-                      },
-                      '& .MuiInputBase-inputMultiline': {
-                        minHeight: '46px !important',
-                        maxHeight: '144px',
-                        overflowY: 'auto !important'
-                      }
-                    }}
+                    flex={3}
                   />
                 </Box>
                 {/* 错误答案和错误原因 - 响应式布局 */}
@@ -228,24 +217,12 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
                     sx={{ flex: 1 }}
                   />
-                  <TextField
+                  <FlexibleTextarea
                     label="错误原因"
-                    multiline
                     value={editedQuestion.reason || ''}
                     onChange={(e) => setEditedQuestion({ ...editedQuestion, reason: e.target.value })}
                     placeholder="请输入错误原因分析..."
-                    InputLabelProps={{ sx: { bgcolor: 'white', px: 0.5 } }}
-                    sx={{ 
-                      flex: 3,
-                      '& .MuiInputBase-root': {
-                        alignItems: 'flex-start'
-                      },
-                      '& .MuiInputBase-inputMultiline': {
-                        minHeight: '46px !important',
-                        maxHeight: '144px',
-                        overflowY: 'auto !important'
-                      }
-                    }}
+                    flex={3}
                   />
                 </Box>
                 {/* 学期选择器 */}
