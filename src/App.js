@@ -16,6 +16,7 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { UploadProvider } from './contexts/UploadContext';
+import SideDrawingCanvas from './components/SideDrawingCanvas';
 import './App.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
@@ -757,6 +758,7 @@ function App() {
   return (
     <AuthProvider>
       <UploadProvider>
+        <SideDrawingCanvas />
         <MainApp />
       </UploadProvider>
     </AuthProvider>
