@@ -237,11 +237,6 @@ function QuestionForm({ formData, onChange, user }) {
             label="粗心大意"
             sx={{ marginRight: 0 }}
           />
-          <FormControlLabel
-            control={<Checkbox checked={formData.tags.includes('其他')} onChange={(e) => handleTagChange('其他', e.target.checked)} />}
-            label="其他"
-            sx={{ marginRight: 0 }}
-          />
         </Stack>
       </Box>
     </Box>
