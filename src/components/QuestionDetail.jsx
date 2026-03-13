@@ -8,6 +8,24 @@ import FlexibleTextarea from './FlexibleTextarea';
 
 
 
+// 中文标签到英文错误类型的映射
+const tagToErrorType = {
+  '计算错误': 'calculation',
+  '概念不清': 'concept',
+  '审题错误': 'reading',
+  '粗心大意': 'careless'
+};
+
+// 将中文标签数组转换为英文错误类型
+const convertTagsToErrorType = (tags) => {
+  if (!tags || !Array.isArray(tags) || tags.length === 0) {
+    return 'none';
+  }
+  // 取第一个标签对应的英文错误类型
+  const firstTag = tags[0];
+  return tagToErrorType[firstTag] || 'none';
+};
+
 function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -84,7 +102,8 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
   };
 
   const handleGenerate = async () => {
-    if (!question.question || !question.correctAnswer || !question.tags) {
+    // 检查是否有题目和正确答案，以及错误类型（标签）
+    if (!question.question || !question.correctAnswer || !question.tags || question.tags.length === 0) {
       setSnackbar({ open: true, message: '请先完善错题信息（题目、正确答案、错误类型）', severity: 'warning' });
       return;
     }
@@ -102,7 +121,7 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
           question: question.question,
           correctAnswer: question.correctAnswer,
           studentAnswer: question.wrongAnswer,
-          errorType: question.tags,
+          errorType: convertTagsToErrorType(question.tags),  // 转换为英文错误类型
           errorReason: question.reason,
           subject: question.subject,
           questionType: 'short_answer',
@@ -269,10 +288,6 @@ function QuestionDetail({ questions, updateQuestion, generateSimilar }) {
                     <FormControlLabel
                       control={<Checkbox checked={editedQuestion.tags?.includes('粗心大意')} onChange={(e) => handleTagChange('粗心大意', e.target.checked)} />}
                       label="粗心大意"
-                    />
-                    <FormControlLabel
-                      control={<Checkbox checked={editedQuestion.tags?.includes('其他')} onChange={(e) => handleTagChange('其他', e.target.checked)} />}
-                      label="其他"
                     />
                   </Stack>
                 </Box>
