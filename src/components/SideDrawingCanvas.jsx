@@ -3,8 +3,8 @@ import { Box, IconButton, Tooltip, Popover } from '@mui/material';
 import { Trash2, Palette, Pencil } from 'lucide-react';
 
 const COLORS = [
-  '#0891B2', // cyan-600 (default)
-  '#EF4444', // red-500
+  '#EF4444', // red-500 (default)
+  '#0891B2', // cyan-600
   '#F97316', // orange-500
   '#EAB308', // yellow-500
   '#22C55E', // green-500
@@ -14,13 +14,13 @@ const COLORS = [
   '#000000', // black
 ];
 
-const PENCIL_CURSOR = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%230891B2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>') 2 20, auto`;
+const PENCIL_CURSOR = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>') 2 20, auto`;
 
 function SideDrawingCanvas() {
   const canvasRef = useRef(null);
   const [isDrawingMode, setIsDrawingMode] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [color, setColor] = useState('#0891B2');
+  const [color, setColor] = useState('#EF4444');
   const [hasContent, setHasContent] = useState(false);
   const [colorAnchor, setColorAnchor] = useState(null);
   const lastPosRef = useRef({ x: 0, y: 0 });
@@ -251,7 +251,7 @@ function SideDrawingCanvas() {
                   borderRadius: '50%',
                   bgcolor: c,
                   cursor: 'pointer',
-                  border: color === c ? '3px solid #0891B2' : '2px solid transparent',
+                  border: color === c ? '3px solid #EF4444' : '2px solid transparent',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                   transition: 'transform 0.1s',
                   '&:hover': { transform: 'scale(1.1)' }
