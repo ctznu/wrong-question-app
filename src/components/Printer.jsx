@@ -6,7 +6,7 @@ import { Download, Printer as PrinterIcon, Filter, BookOpen, ChevronDown, Chevro
 import { useAuth } from '../contexts/AuthContext';
 import ClaySelect from './ClaySelect';
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
 
 const subjects = [
   { value: 'chinese', label: '语文', color: 'chinese-chip' },
