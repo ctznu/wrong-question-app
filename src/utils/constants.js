@@ -57,5 +57,6 @@ export const LLM_MODELS = [
   { value: 'zhipu', label: '智谱AI', color: '#4D6BFE' },
   { value: 'tongyi', label: '通义千问', color: '#FF6B6B' },
   { value: 'hunyuan', label: '腾讯混元', color: '#0052D9' },
+  { value: 'volcengine', label: '火山引擎', color: '#FF8C00' },
   { value: 'ollama', label: '本地Ollama', color: '#10B981' }
 ];

@@ -1,12 +1,11 @@
 """
 API LLM 客户端
-支持智谱AI API
-折中方案：2次调用（识别+分析）
+支持智谱AI、通义千问、腾讯混元、火山引擎
 添加了重试机制来处理API 429错误
 """
 import os
 from dotenv import load_dotenv
-from api_llm import ZhipuLLM, TongyiLLM, HunyuanLLM
+from api_llm import ZhipuLLM, TongyiLLM, HunyuanLLM, VolcengineLLM
 
 load_dotenv()
 
@@ -20,14 +19,17 @@ def get_available_api_llm():
     zhipu = ZhipuLLM()
     tongyi = TongyiLLM()
     hunyuan = HunyuanLLM()
+    volcengine = VolcengineLLM()
 
     zhipu_available = zhipu.is_available()
     tongyi_available = tongyi.is_available()
     hunyuan_available = hunyuan.is_available()
+    volcengine_available = volcengine.is_available()
 
     print(f'[get_available_api_llm] 智谱AI 可用: {zhipu_available}')
     print(f'[get_available_api_llm] 通义千问 可用: {tongyi_available}')
     print(f'[get_available_api_llm] 腾讯混元 可用: {hunyuan_available}')
+    print(f'[get_available_api_llm] 火山引擎 可用: {volcengine_available}')
 
     if default_llm == 'tongyi' and tongyi_available:
         print(f'[get_available_api_llm] 使用通义千问（默认配置）')
@@ -38,10 +40,16 @@ def get_available_api_llm():
     elif default_llm == 'hunyuan' and hunyuan_available:
         print(f'[get_available_api_llm] 使用腾讯混元（默认配置）')
         return hunyuan
+    elif default_llm == 'volcengine' and volcengine_available:
+        print(f'[get_available_api_llm] 使用火山引擎（默认配置）')
+        return volcengine
 
     if zhipu_available:
         print(f'[get_available_api_llm] 使用智谱AI（备选）')
         return zhipu
+    if volcengine_available:
+        print(f'[get_available_api_llm] 使用火山引擎（备选）')
+        return volcengine
     if tongyi_available:
         print(f'[get_available_api_llm] 使用通义千问（备选）')
         return tongyi

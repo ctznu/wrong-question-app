@@ -94,6 +94,7 @@ export const LLM_MODELS = {
   ZHIPU: 'zhipu',
   TONGYI: 'tongyi',
   HUNYUAN: 'hunyuan',
+  VOLCENGINE: 'volcengine',
   OLLAMA: 'ollama'
 };
 
@@ -101,5 +102,6 @@ export const LLM_MODEL_LABELS = {
   zhipu: '智谱AI',
   tongyi: '通义千问',
   hunyuan: '腾讯混元',
+  volcengine: '火山引擎',
   ollama: '本地Ollama'
 };

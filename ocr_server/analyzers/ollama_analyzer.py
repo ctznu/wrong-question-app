@@ -23,10 +23,16 @@ class OllamaAnalyzer(QuestionAnalyzer):
         return self.parse_result(raw_result)
     
     def parse_result(self, raw_result: Dict, ocr_result: Optional[Dict] = None) -> Dict:
-        # 构建合并结果
+        subject = raw_result.get('subject', 'unknown')
+        subject_map = {'数学': 'math', 'math': 'math', '语文': 'chinese', 'chinese': 'chinese', '英语': 'english', 'english': 'english'}
+        subject = subject_map.get(subject, 'unknown')
+        error_type = raw_result.get('error_type', 'none')
+        valid_error_types = {'calculation', 'concept', 'reading', 'careless', 'none'}
+        if error_type not in valid_error_types:
+            error_type = 'concept'
         merged = {
             'is_question': raw_result.get('is_question', False),
-            'subject': raw_result.get('subject', 'unknown'),
+            'subject': subject,
             'questionType': raw_result.get('question_type', 'short_answer'),
             'question': raw_result.get('question_text', ''),
             'options': raw_result.get('options', []),
@@ -36,7 +42,7 @@ class OllamaAnalyzer(QuestionAnalyzer):
             'studentAnswer': raw_result.get('student_answer', ''),
             'studentAnswerBbox': raw_result.get('student_answer_bbox', {}),
             'isWrong': raw_result.get('is_wrong', False),
-            'errorType': raw_result.get('error_type', 'none'),
+            'errorType': error_type,
             'errorReason': raw_result.get('error_reason', ''),
             'reasoningSteps': raw_result.get('reasoning_steps', ''),
             'grade': raw_result.get('grade', ''),

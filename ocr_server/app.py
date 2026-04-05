@@ -85,6 +85,16 @@ def start_cleanup_task():
     thread.start()
     print('[start_cleanup_task] 启动定时清理任务')
 
+def normalize_subject(subject: str) -> str:
+    """规范化subject字段为英文"""
+    subject_map = {
+        '数学': 'math', 'math': 'math',
+        '语文': 'chinese', 'chinese': 'chinese',
+        '英语': 'english', 'english': 'english',
+    }
+    return subject_map.get(subject, 'unknown')
+
+
 def infer_subject_from_text(text: str) -> str:
     """从文本中推断学科"""
     if not text:
@@ -180,7 +190,7 @@ def intelligent_analyze():
         if llm_analysis:
             formatted_result = {
                 'is_question': llm_analysis.get('is_question', False),
-                'subject': llm_analysis.get('subject', 'unknown'),
+                'subject': normalize_subject(llm_analysis.get('subject', 'unknown')),
                 'questionType': llm_analysis.get('question_type', 'unknown'),
                 'question': llm_analysis.get('question_text', ''),
                 'options': llm_analysis.get('options', []),
