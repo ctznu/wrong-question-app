@@ -168,17 +168,16 @@ function Upload({ addQuestion }) {
           setFormData(prev => ({ ...prev, explanation: explanationContent }));
         }
         if (data.errorType && data.errorType !== 'none') {
-          // 映射错误类型到中文标签
           const errorTypeMap = {
             'calculation': '计算错误',
             'concept': '概念不清',
             'reading': '审题错误',
-            'careless': '粗心大意',
-            'none': '无错误'
+            'careless': '粗心大意'
           };
-          const errorTypeLabel = errorTypeMap[data.errorType] || '未知错误类型';
-          setFormData(prev => ({ ...prev, tags: [errorTypeLabel] }));
-        } else {
+          const errorTypeLabel = errorTypeMap[data.errorType];
+          if (errorTypeLabel) {
+            setFormData(prev => ({ ...prev, tags: [errorTypeLabel] }));
+          }
         }
       }
     } catch (err) {
@@ -273,7 +272,7 @@ function Upload({ addQuestion }) {
                 学科: {SUBJECTS.find(s => s.value === ocrResult.subject)?.label || '未知'} |
                 题目类型: {QUESTION_TYPES.find(q => q.value === ocrResult.questionType)?.label || '未知'} |
                 置信度: {(ocrResult.confidence * 100).toFixed(0)}%<br/>
-                {ocrResult.isWrong && <span style={{color: '#d32f2f'}}>识别到错误答案（{ERROR_TYPES.find(t => t.value === ocrResult.errorType)?.label || '未知错误类型'}）</span>}
+                {ocrResult.isWrong && ocrResult.errorType && ocrResult.errorType !== 'none' && <span style={{color: '#d32f2f'}}>识别到错误答案（{ERROR_TYPES.find(t => t.value === ocrResult.errorType)?.label || '未知错误类型'}）</span>}
               </Alert>
             )}
 

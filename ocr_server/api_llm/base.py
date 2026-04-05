@@ -61,9 +61,9 @@ class BaseAPILM(ABC):
                     error_msg = f"{self.__class__.__name__} API error: {response.status_code}"
                     try:
                         error_detail = response.json()
-                        error_msg += f" - {error_detail.get('message', 'Unknown error')}"
+                        error_msg += f" - {error_detail}"
                     except:
-                        pass
+                        error_msg += f" - {response.text[:500]}"
                     raise Exception(error_msg)
                 
                 return response.json()
